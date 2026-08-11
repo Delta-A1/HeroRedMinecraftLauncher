@@ -1,0 +1,34 @@
+{
+  "name": "fire-crew-launcher",
+  "productName": "불꽃단 런처",
+  "version": "0.4.3-login-test.9",
+  "description": "Minecraft 26.2 도시 건축 모드 구성과 실시간 런처 피드를 지원하는 Fire Crew 독립형 Minecraft 런처",
+  "main": "src/main.js",
+  "author": "Fire Crew",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "manifest:key": "node tools/generate-signing-key.cjs",
+    "manifest:build": "node tools/build-distribution-manifest.cjs",
+    "pack:win": "node tools/build-windows-package.cjs",
+    "release:win": "npm run pack:win && node tools/build-github-release.cjs"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^5.4.2",
+    "@xmcl/core": "^2.15.1",
+    "@xmcl/installer": "^6.1.2",
+    "@xmcl/nbt": "^3.0.2",
+    "@xmcl/user": "^4.3.0",
+    "adm-zip": "^0.6.0",
+    "undici": "7.2.3"
+  },
+  "devDependencies": {
+    "@electron/packager": "^19.0.1",
+    "@xmcl/curseforge": "^2.2.0",
+    "@xmcl/file-transfer": "2.0.3",
+    "electron": "^43.2.0",
+    "playwright": "^1.62.1"
+  }
+}

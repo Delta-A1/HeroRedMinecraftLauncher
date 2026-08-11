@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
+    <title>불꽃단 런처</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="hero-art" aria-hidden="true">
+      <div class="hero-slide hero-slide-group active"></div>
+      <div class="hero-slide hero-slide-outro"></div>
+      <div class="hero-slide hero-slide-lounge"></div>
+    </div>
+    <div class="color-wash" aria-hidden="true"></div>
+    <div class="screen-grid" aria-hidden="true"></div>
+
+    <aside class="nav-rail" aria-label="런처 바로가기">
+      <div class="rail-drag" aria-hidden="true"></div>
+      <div class="rail-brand" aria-label="Fire Crew">
+        <span class="rail-brand-core" aria-hidden="true"></span>
+        <span class="rail-brand-flare"></span>
+      </div>
+
+      <nav class="rail-nav" aria-label="메인 메뉴">
+        <button class="rail-button active" type="button" aria-label="런처 홈">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 10.5 12 4l8 6.5v8.2a1.3 1.3 0 0 1-1.3 1.3H5.3A1.3 1.3 0 0 1 4 18.7z"/>
+            <path d="M9.3 20v-6.2h5.4V20"/>
+          </svg>
+          <span>홈</span>
+        </button>
+        <button id="stationButton" class="rail-button social soop" type="button" aria-label="SOOP 히어로레드 방송국 열기">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.2 6.3h11.6A2.2 2.2 0 0 1 20 8.5v7a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 15.5v-7a2.2 2.2 0 0 1 2.2-2.2Z"/>
+            <path d="m9.8 9.2 5.2 2.9-5.2 2.9z"/>
+            <path d="M8 3.8 10.2 6M16 3.8 13.8 6"/>
+          </svg>
+          <span>SOOP</span>
+        </button>
+        <button id="youtubeButton" class="rail-button social youtube" type="button" aria-label="히어로 레드 유튜브 채널 열기">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 8.2a3 3 0 0 0-2.1-2.1C17.1 5.6 12 5.6 12 5.6s-5.1 0-6.9.5A3 3 0 0 0 3 8.2 31 31 0 0 0 2.6 12 31 31 0 0 0 3 15.8a3 3 0 0 0 2.1 2.1c1.8.5 6.9.5 6.9.5s5.1 0 6.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .4-3.8 31 31 0 0 0-.4-3.8Z"/>
+            <path class="fill" d="m10.1 14.9 4.7-2.9-4.7-2.9z"/>
+          </svg>
+          <span>YouTube</span>
+        </button>
+      </nav>
+
+      <button id="settingsButton" class="rail-button rail-settings" type="button" aria-label="런처 설정" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.1"/>
+          <path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.4 1a8.3 8.3 0 0 0-2.6-1.5L14 2.6h-4l-.4 2.5A8.3 8.3 0 0 0 7 6.6l-2.4-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.4-1a8.3 8.3 0 0 0 2.6 1.5l.4 2.5h4l.4-2.5a8.3 8.3 0 0 0 2.6-1.5l2.4 1 2-3.4z"/>
+        </svg>
+        <span>설정</span>
+      </button>
+    </aside>
+
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-copy">
+          <span>FIRE CREW LAUNCHER</span>
+          <strong>불꽃단 &amp; 레드 런처</strong>
+        </div>
+        <div class="top-meta">
+          <div class="account-chip">
+            <canvas id="accountSkinHead" class="account-skin-head" width="32" height="32" aria-label="Minecraft 스킨 얼굴"></canvas>
+            <span id="accountDot" class="account-dot"></span>
+            <span class="account-chip-copy">
+              <span id="accountProviderLabel">MICROSOFT · MINECRAFT</span>
+              <strong id="accountName">로그인 확인 중</strong>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <section class="main-skin-showcase" aria-label="Minecraft 스킨">
+        <div class="main-skin-frame" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="main-skin-stage">
+          <div class="main-skin-glow" aria-hidden="true"></div>
+          <canvas id="profileSkinCanvas" width="192" height="270" aria-label="현재 Minecraft 스킨"></canvas>
+        </div>
+        <div class="main-skin-copy">
+          <span>MINECRAFT PROFILE</span>
+          <strong id="mainSkinName">로그인 상태 확인 중</strong>
+          <small id="skinModelLabel">PLAYER</small>
+        </div>
+      </section>
+
+      <section class="news-panel" aria-labelledby="newsTitle">
+        <div class="news-heading">
+          <div class="news-heading-copy">
+            <span class="news-number">NEWS / 01</span>
+            <div>
+              <p>RED'S BASE · SOOP</p>
+              <h2 id="newsTitle">방송국 최신 소식</h2>
+            </div>
+          </div>
+          <button id="newsRefreshButton" class="refresh-button" type="button" aria-label="최신 글 새로고침">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M19 7v5h-5M5 17v-5h5"/>
+              <path d="M18 11a6.5 6.5 0 0 0-11-3L5 10M6 13a6.5 6.5 0 0 0 11 3l2-2"/>
+            </svg>
+          </button>
+        </div>
+        <div class="news-tabs" role="tablist" aria-label="방송국 게시판 분류">
+          <button class="news-tab active" data-category="notice" type="button" role="tab" aria-selected="true">공지</button>
+          <button class="news-tab" data-category="secret" type="button" role="tab" aria-selected="false">비밀기지 (자유게시판)</button>
+        </div>
+        <div id="newsList" class="news-list" aria-live="polite">
+          <div class="news-placeholder">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="news-footer">
+          <span id="newsSource">최신 글을 불러오는 중</span>
+          <button id="stationTextButton" type="button">방송국 전체 보기 <span aria-hidden="true">↗</span></button>
+        </div>
+      </section>
+
+      <section class="launch-dock" aria-label="게임 실행">
+        <div class="dock-accent" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="server-population" aria-live="polite">
+          <span class="server-population-dot"></span>
+          <span>SERVER ONLINE</span>
+          <strong id="serverPlayerCount">확인 중</strong>
+        </div>
+        <div class="status-row">
+          <span id="statusDot" class="status-dot"></span>
+          <div class="status-copy">
+            <span>LAUNCH STATUS</span>
+            <strong id="statusTitle">설치 상태를 확인하는 중...</strong>
+            <small id="progressText">잠시만 기다려 주세요.</small>
+          </div>
+          <span id="statusDetail" class="status-detail"></span>
+        </div>
+        <div class="progress-track" aria-label="설치 진행률">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <button id="primaryButton" class="primary" type="button" disabled>
+          <span class="play-orbit" aria-hidden="true"><i></i></span>
+          <span class="primary-copy">
+            <small>FIRE CREW CLIENT</small>
+            <span class="primary-label">확인 중...</span>
+          </span>
+          <span class="primary-arrow" aria-hidden="true">→</span>
+        </button>
+        <p id="accountNote" class="account-note">첫 설치 때만 정품 Microsoft 계정 로그인이 필요합니다.</p>
+      </section>
+
+      <footer>
+        <span id="launcherBuildLabel">Fire Crew Launcher · 버전 확인 중 · MC 26.2</span>
+        <span>© 2026 FIRE CREW</span>
+      </footer>
+    </main>
+
+    <aside id="settingsPanel" class="settings-panel" aria-hidden="true">
+      <div class="settings-heading">
+        <div>
+          <p>LAUNCHER SETTING</p>
+          <h2>환경 설정</h2>
+        </div>
+        <button id="settingsCloseButton" type="button" aria-label="설정 닫기">×</button>
+      </div>
+      <label for="memorySelect">클라이언트 메모리</label>
+      <select id="memorySelect">
+        <option value="6144">6 GB · 최소</option>
+        <option value="8192" selected>8 GB · 권장</option>
+        <option value="10240">10 GB</option>
+        <option value="12288">12 GB</option>
+      </select>
+      <p class="setting-help">PC 메모리의 절반 정도를 권장합니다.</p>
+      <div id="launcherUpdateStatus" class="launcher-update-status" data-state="idle">
+        <div>
+          <span>LAUNCHER UPDATE</span>
+          <strong id="launcherUpdateVersion">현재 버전 확인 중</strong>
+        </div>
+        <p id="launcherUpdateMessage">GitHub 릴리스 정보를 불러오고 있습니다.</p>
+        <div class="launcher-update-progress" aria-hidden="true"><span id="launcherUpdateProgress"></span></div>
+      </div>
+      <div class="settings-feed-status">
+        <span class="top-status-dot"></span>
+        <span>SOOP LIVE FEED</span>
+        <strong>CONNECTED</strong>
+      </div>
+      <div class="settings-actions">
+        <button id="folderButton" type="button">설치 폴더</button>
+        <button id="reportButton" type="button">로그 폴더</button>
+        <button id="accountButton" type="button">Microsoft 로그인</button>
+        <button id="updateCheckButton" class="update-button" type="button">런처 업데이트 확인</button>
+        <button id="repairButton" class="danger-button" type="button" disabled>복구 설치</button>
+      </div>
+    </aside>
+
+    <section id="authPanel" class="auth-panel" aria-hidden="true" aria-live="assertive">
+      <div class="auth-card">
+        <span class="auth-kicker">MICROSOFT SECURE LOGIN</span>
+        <h2 id="authTitle">브라우저에서<br>로그인을 완료해 주세요.</h2>
+        <p id="authDescription">아래 코드를 Microsoft 로그인 페이지에 입력하면 런처로 자동 복귀합니다.</p>
+        <strong id="authCode" class="auth-code">---- ----</strong>
+        <small id="authMessage">로그인 페이지를 여는 중...</small>
+        <button id="authCloseButton" type="button">창만 닫기</button>
+      </div>
+    </section>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

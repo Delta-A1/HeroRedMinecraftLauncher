@@ -1,0 +1,10 @@
+{
+  "microsoftClientId": "13b1569c-6493-4f9f-9cc3-7a4def917a33",
+  "distributionManifestUrl": "",
+  "distributionPublicKey": "",
+  "allowUnsignedLocalManifest": true,
+  "qaBypassMicrosoftLogin": false,
+  "githubRepository": "Delta-A1/HeroRedMinecraftLauncher",
+  "githubReleaseAsset": "",
+  "autoUpdateEnabled": true
+}
