@@ -3,7 +3,7 @@
     "schemaVersion": 1,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-12T01:50:24.138Z",
+    "generatedAt": "2026-08-12T14:56:33.385Z",
     "profile": {
       "id": "fire-crew-26.2-city-building",
       "minecraftVersion": "26.2",
@@ -42,6 +42,16 @@
           "value": "f083e7c2819b15a08e746ca894fd748eefc89187"
         },
         "source": "Easy NPC: Core · Easy NPC 7.0.0 · Modrinth"
+      },
+      {
+        "path": "mods/fusion-1.3.12-forge-mc26.2.jar",
+        "url": "https://cdn.modrinth.com/data/p19vrgc2/versions/Lgsqo3Og/fusion-1.3.12-forge-mc26.2.jar",
+        "size": 926152,
+        "hash": {
+          "algorithm": "sha1",
+          "value": "030d8301b0bdd9895843d0d46f486a662a7ffe7e"
+        },
+        "source": "Fusion (Connected Textures) · Fusion 1.3.12 · Modrinth"
       },
       {
         "path": "mods/mcw-fences-1.2.1-mc26.2forge.jar",
@@ -154,6 +164,26 @@
         "source": "Modrinth · Skniro's Furniture · Forge 26.2"
       },
       {
+        "path": "mods/supermartijn642configlib-1.1.8-forge-mc26.2.jar",
+        "url": "https://cdn.modrinth.com/data/LN9BxssP/versions/zVO7QByg/supermartijn642configlib-1.1.8-forge-mc26.2.jar",
+        "size": 205874,
+        "hash": {
+          "algorithm": "sha1",
+          "value": "ccd5e3426a9c8721ec50b6c5518500cc5e3e9cb3"
+        },
+        "source": "SuperMartijn642's Config Lib · SuperMartijn642's Config Library 1.1.8 · Modrinth"
+      },
+      {
+        "path": "mods/supermartijn642corelib-1.1.24-forge-mc26.2.jar",
+        "url": "https://cdn.modrinth.com/data/rOUBggPv/versions/2Jkfpekn/supermartijn642corelib-1.1.24-forge-mc26.2.jar",
+        "size": 607736,
+        "hash": {
+          "algorithm": "sha1",
+          "value": "030e6341827460cba77dada41b2b0bb373c9833b"
+        },
+        "source": "SuperMartijn642's Core Lib · SuperMartijn642's Core Lib 1.1.24 · Modrinth"
+      },
+      {
         "path": "mods/voicechat-forge-2.6.21+26.2.jar",
         "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/YxH698Mp/voicechat-forge-2.6.21%2B26.2.jar",
         "size": 4910659,
@@ -193,5 +223,5 @@
       "mods/ConnectedGlass-1.1.14-forge-mc26.2.jar"
     ]
   },
-  "signature": "C9Tg17zPgT9URPGtFunmI1VcAy+UxnNmm+K8Tb3xu6dreDPL7CVCWvPhDR0QyfpKoT0/fFy+jFNcCXpaZSMXBg=="
+  "signature": "rxtkS1i553cLrg5JDRlESXbI2bIejOT4xhIvZuUz/pqVlm2LJwSjKPxTBRH03CGdqwVFK7SEJ7mxTVYVztv1Bg=="
 }
