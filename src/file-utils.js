@@ -86,7 +86,7 @@ async function downloadFile(urlValue, destination, options = {}) {
       redirect: 'follow',
       signal,
       headers: {
-        'User-Agent': 'Fire-Crew-Launcher/0.4.3-R9',
+        'User-Agent': 'Fire-Crew-Launcher/1.0.0',
         ...(options.headers || {})
       }
     });

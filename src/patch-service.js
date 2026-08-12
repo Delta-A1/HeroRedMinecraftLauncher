@@ -130,7 +130,7 @@ class PatchService {
             headers: {
               Accept: 'application/json',
               'Cache-Control': 'no-cache',
-              'User-Agent': 'Fire-Crew-Launcher/0.4.3-R9'
+              'User-Agent': 'Fire-Crew-Launcher/1.0.0'
             }
           });
           if (!response.ok) throw new Error(`패치 정보 조회 실패 (HTTP ${response.status})`);

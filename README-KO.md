@@ -6,7 +6,7 @@ R9 내부 테스트용 Windows 배포본과 같은 기능 구성을 편집 가�
 
 | 항목 | 버전 또는 설정 |
 | --- | --- |
-| 런처 | Fire Crew Launcher `0.4.3-login-test.9` |
+| 런처 | Fire Crew Launcher `1.0.0` |
 | Minecraft Java Edition | `26.2` |
 | Forge | `65.0.9` |
 | Java 런타임 | Mojang `java-runtime-epsilon` / Java 25 |
