@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('fireCrew', {
   login: () => ipcRenderer.invoke('launcher:login'),
   logout: () => ipcRenderer.invoke('launcher:logout'),
   checkUpdates: () => ipcRenderer.invoke('launcher:check-updates'),
+  checkModeUpdates: () => ipcRenderer.invoke('launcher:check-mode-updates'),
   installLauncherUpdate: () => ipcRenderer.invoke('launcher:install-update'),
   install: () => ipcRenderer.invoke('launcher:install'),
   launch: () => ipcRenderer.invoke('launcher:launch'),
@@ -23,6 +24,7 @@ contextBridge.exposeInMainWorld('fireCrew', {
   onAuthStage: (handler) => ipcRenderer.on('launcher:auth-stage', (_event, value) => handler(value)),
   onStateChanged: (handler) => ipcRenderer.on('launcher:state-changed', (_event, value) => handler(value)),
   onUpdateStatus: (handler) => ipcRenderer.on('launcher:update-status', (_event, value) => handler(value)),
+  onModeUpdateStatus: (handler) => ipcRenderer.on('launcher:mode-update-status', (_event, value) => handler(value)),
   onSkinUpdated: (handler) => ipcRenderer.on('launcher:skin-updated', (_event, value) => handler(value)),
   onGameExit: (handler) => ipcRenderer.on('launcher:game-exit', (_event, value) => handler(value))
 });

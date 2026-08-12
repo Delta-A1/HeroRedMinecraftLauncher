@@ -8,6 +8,10 @@ const WINDOWS_BUILD_NAME = '불꽃단 런처-win32-x64';
 
 const BUILD_IGNORE_PATTERNS = Object.freeze([
   /^\/release(?:\/|$)/,
+  /^\/dist-admin(?:\/|$)/,
+  /^\/internal-build(?:\/|$)/,
+  /^\/admin-signing-key(?:\/|$)/,
+  /\.pem$/i,
   /^\/test(?:\/|$)/,
   /^\/tools(?:\/|$)/,
   /^\/README-KO\.md$/,

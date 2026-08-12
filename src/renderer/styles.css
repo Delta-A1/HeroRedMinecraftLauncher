@@ -1303,6 +1303,17 @@ footer {
   color: #ff9b98;
 }
 
+.mode-update-status[data-state="available"],
+.mode-update-status[data-state="updating"] {
+  border-color: rgba(56, 221, 210, 0.34);
+}
+
+.mode-update-status[data-state="available"] strong,
+.mode-update-status[data-state="updating"] strong,
+.mode-update-status[data-state="up-to-date"] strong {
+  color: var(--cyan);
+}
+
 .launcher-update-progress {
   height: 2px;
   margin-top: 9px;
@@ -1363,10 +1374,15 @@ footer {
   border-color: rgba(242, 58, 54, 0.28);
 }
 
-.settings-actions .update-button {
-  grid-column: 1 / -1;
+.settings-actions .update-button,
+.settings-actions .mode-update-button {
   color: #ffe583;
   border-color: rgba(255, 216, 75, 0.25);
+}
+
+.settings-actions .mode-update-button {
+  color: var(--cyan);
+  border-color: rgba(56, 221, 210, 0.28);
 }
 
 .settings-actions button:disabled {

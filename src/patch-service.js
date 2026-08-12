@@ -130,7 +130,7 @@ class PatchService {
             headers: {
               Accept: 'application/json',
               'Cache-Control': 'no-cache',
-              'User-Agent': 'Fire-Crew-Launcher/1.0.0'
+              'User-Agent': 'Fire-Crew-Launcher/1.0.1'
             }
           });
           if (!response.ok) throw new Error(`패치 정보 조회 실패 (HTTP ${response.status})`);
@@ -168,6 +168,7 @@ class PatchService {
       return {
         configured: false,
         ready: false,
+        installedVersion: installed.version || '',
         version: manifest.version || '',
         changedFiles: manifest.files.length,
         message: manifest.message || '관리자용 배포 매니페스트 생성이 필요합니다.'
@@ -186,6 +187,7 @@ class PatchService {
     return {
       configured: true,
       ready: profileMatches && changed.length === 0 && archiveChanged.length === 0,
+      installedVersion: installed.version || '',
       version: manifest.version,
       changedFiles: changed.length + archiveChanged.length,
       message: changed.length || archiveChanged.length ? '새 패치가 있습니다.' : '최신 상태입니다.',

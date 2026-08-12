@@ -181,6 +181,14 @@
         <p id="launcherUpdateMessage">GitHub 릴리스 정보를 불러오고 있습니다.</p>
         <div class="launcher-update-progress" aria-hidden="true"><span id="launcherUpdateProgress"></span></div>
       </div>
+      <div id="modeUpdateStatus" class="launcher-update-status mode-update-status" data-state="idle">
+        <div>
+          <span>MODE LIST UPDATE</span>
+          <strong id="modeUpdateVersion">모드 목록 확인 전</strong>
+        </div>
+        <p id="modeUpdateMessage">실행할 때 GitHub의 서명된 모드 목록을 자동으로 확인합니다.</p>
+        <div class="launcher-update-progress" aria-hidden="true"><span id="modeUpdateProgress"></span></div>
+      </div>
       <div class="settings-feed-status">
         <span class="top-status-dot"></span>
         <span>SOOP LIVE FEED</span>
@@ -191,6 +199,7 @@
         <button id="reportButton" type="button">로그 폴더</button>
         <button id="accountButton" type="button">Microsoft 로그인</button>
         <button id="updateCheckButton" class="update-button" type="button">런처 업데이트 확인</button>
+        <button id="modeUpdateCheckButton" class="mode-update-button" type="button">모드 업데이트 확인</button>
         <button id="repairButton" class="danger-button" type="button" disabled>복구 설치</button>
       </div>
     </aside>

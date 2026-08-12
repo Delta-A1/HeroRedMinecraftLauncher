@@ -31,10 +31,15 @@ const elements = {
   skinModelLabel: document.querySelector('#skinModelLabel'),
   accountButton: document.querySelector('#accountButton'),
   updateCheck: document.querySelector('#updateCheckButton'),
+  modeUpdateCheck: document.querySelector('#modeUpdateCheckButton'),
   launcherUpdateStatus: document.querySelector('#launcherUpdateStatus'),
   launcherUpdateVersion: document.querySelector('#launcherUpdateVersion'),
   launcherUpdateMessage: document.querySelector('#launcherUpdateMessage'),
   launcherUpdateProgress: document.querySelector('#launcherUpdateProgress'),
+  modeUpdateStatus: document.querySelector('#modeUpdateStatus'),
+  modeUpdateVersion: document.querySelector('#modeUpdateVersion'),
+  modeUpdateMessage: document.querySelector('#modeUpdateMessage'),
+  modeUpdateProgress: document.querySelector('#modeUpdateProgress'),
   station: document.querySelector('#stationButton'),
   stationText: document.querySelector('#stationTextButton'),
   youtube: document.querySelector('#youtubeButton'),
@@ -197,6 +202,8 @@ function setBusy(value) {
   elements.accountButton.disabled = value || state?.qaMode;
   const updateState = state?.launcherUpdate?.state;
   elements.updateCheck.disabled = value || ['checking', 'downloading', 'preparing', 'ready'].includes(updateState);
+  const modeState = state?.modeUpdate?.state;
+  elements.modeUpdateCheck.disabled = value || ['checking', 'updating'].includes(modeState);
   elements.statusDot.className = `status-dot ${value ? 'busy' : (state?.installed ? 'ready' : '')}`;
 }
 
@@ -222,6 +229,28 @@ function renderLauncherUpdate(update = {}) {
   elements.updateCheck.disabled = busy
     || !update.configured
     || ['checking', 'downloading', 'preparing', 'ready'].includes(updateState);
+}
+
+function renderModeUpdate(update = {}) {
+  const updateState = update.state || 'idle';
+  elements.modeUpdateStatus.dataset.state = updateState;
+  elements.modeUpdateVersion.textContent = update.latestVersion
+    ? `설치 ${update.currentVersion || '없음'} · 목록 ${update.latestVersion}`
+    : '모드 목록 확인 전';
+  elements.modeUpdateMessage.textContent = update.message || 'GitHub의 서명된 모드 목록을 확인합니다.';
+  elements.modeUpdateProgress.style.width = `${Math.max(0, Math.min(100, Number(update.progress) || 0))}%`;
+  if (updateState === 'checking') {
+    elements.modeUpdateCheck.textContent = '모드 목록 확인 중...';
+  } else if (updateState === 'updating') {
+    elements.modeUpdateCheck.textContent = `모드 갱신 중 · ${Number(update.progress) || 0}%`;
+  } else if (update.available) {
+    elements.modeUpdateCheck.textContent = `${Number(update.changedFiles) || 0}개 모드 갱신`;
+  } else {
+    elements.modeUpdateCheck.textContent = '모드 업데이트 확인';
+  }
+  elements.modeUpdateCheck.disabled = busy
+    || !update.configured
+    || ['checking', 'updating'].includes(updateState);
 }
 
 function renderAccount(nextState) {
@@ -258,6 +287,7 @@ function render(nextState) {
   elements.launcherBuildLabel.textContent = `Fire Crew Launcher · ${state.product.version} · MC ${state.product.minecraft.version}`;
   renderAccount(state);
   renderLauncherUpdate(state.launcherUpdate);
+  renderModeUpdate(state.modeUpdate);
   const blocking = hasBlockingConfiguration(state);
   elements.primary.disabled = busy || blocking || state.gameRunning;
   elements.repair.disabled = busy || (!state.qaMode && !state.installed && !state.legacyImportAvailable);
@@ -562,6 +592,18 @@ elements.updateCheck.addEventListener('click', async () => {
   }
 });
 
+elements.modeUpdateCheck.addEventListener('click', async () => {
+  setBusy(true);
+  try {
+    state = await api.checkModeUpdates();
+    render(state);
+  } catch (error) {
+    showError(error);
+  } finally {
+    setBusy(false);
+  }
+});
+
 elements.folder.addEventListener('click', () => api.openFolder());
 elements.report.addEventListener('click', () => api.openReport());
 elements.station.addEventListener('click', () => api.openExternal(SOOP_STATION_URL));
@@ -637,6 +679,11 @@ api.onStateChanged((nextState) => {
 api.onUpdateStatus?.((update) => {
   if (state) state.launcherUpdate = update;
   renderLauncherUpdate(update);
+});
+
+api.onModeUpdateStatus?.((update) => {
+  if (state) state.modeUpdate = { ...(state.modeUpdate || {}), ...update };
+  renderModeUpdate(update);
 });
 
 api.onSkinUpdated?.(({ profileId, dataUrl, variant }) => {

@@ -6,7 +6,7 @@ R9 내부 테스트용 Windows 배포본과 같은 기능 구성을 편집 가�
 
 | 항목 | 버전 또는 설정 |
 | --- | --- |
-| 런처 | Fire Crew Launcher `1.0.0` |
+| 런처 | Fire Crew Launcher `1.0.1` |
 | Minecraft Java Edition | `26.2` |
 | Forge | `65.0.9` |
 | Java 런타임 | Mojang `java-runtime-epsilon` / Java 25 |
@@ -107,6 +107,8 @@ npm run modes:pack
 최초 키는 `npm run manifest:key`로 만들 수 있습니다. 개인 키는 런처나 GitHub에 포함하지 말고 별도로 백업해야 합니다. 공개 키만 `distributionPublicKey`에 넣습니다. 현재 기본 원격 목록은 `Delta-A1/HeroRedMinecraftLauncher` 저장소의 `main/assets/distribution-manifest.json`입니다.
 
 모드팩의 소규모 변경은 위 JSON만 새 버전으로 게시합니다. 런처 실행 파일 업데이트용 GitHub Release와 ZIP은 건드리지 않습니다. 반대로 런처 업데이트는 `githubRepository`의 Release만 확인하므로 모드 목록 커밋만으로 런처 업데이트 알림이 발생하지 않습니다.
+
+클라이언트는 실행할 때마다 서명된 원격 모드 목록을 자동 확인합니다. Minecraft 기본 설치가 완료된 클라이언트에서 목록 버전이나 파일 해시가 바뀌면 변경된 모드만 즉시 내려받아 갱신합니다. 설정 화면의 **모드 업데이트 확인** 버튼으로도 언제든 다시 확인할 수 있으며, 이 흐름은 **런처 업데이트 확인**과 독립적입니다.
 
 ## R9 모드 구성
 

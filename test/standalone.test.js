@@ -495,6 +495,22 @@ test('독립형 런처 UI에서 참조하는 모든 요소가 HTML에 존재한�
   }
 });
 
+test('클라이언트는 시작 자동 모드 갱신과 수동 확인 버튼을 제공한다', async () => {
+  const root = path.resolve(__dirname, '..');
+  const [mainSource, preloadSource, rendererSource, html] = await Promise.all([
+    fs.readFile(path.join(root, 'src', 'main.js'), 'utf8'),
+    fs.readFile(path.join(root, 'src', 'preload.js'), 'utf8'),
+    fs.readFile(path.join(root, 'src', 'renderer', 'renderer.js'), 'utf8'),
+    fs.readFile(path.join(root, 'src', 'renderer', 'index.html'), 'utf8')
+  ]);
+  assert.match(mainSource, /syncModeUpdates\(\{ automatic: true \}\)/);
+  assert.match(mainSource, /launcher:check-mode-updates/);
+  assert.match(preloadSource, /checkModeUpdates/);
+  assert.match(rendererSource, /modeUpdateCheck\.addEventListener/);
+  assert.match(html, /id="modeUpdateCheckButton"/);
+  assert.match(html, /id="modeUpdateStatus"/);
+});
+
 test('Minecraft 전신 스킨은 설정창 밖 메인 화면에 있고 이전 히어로 문구는 제거한다', async () => {
   const html = await fs.readFile(
     path.join(__dirname, '..', 'src', 'renderer', 'index.html'),
@@ -678,6 +694,9 @@ test('Windows 배포 파일명의 분해형 한글을 NFC 완성형으로 정규
 test('Windows 패키징이 앱 출력물은 제외하되 의존성의 dist 실행 코드는 보존한다', async () => {
   assert.equal(isBuildIgnored('/test/standalone.test.js'), true);
   assert.equal(isBuildIgnored('/tools/build-windows-package.cjs'), true);
+  assert.equal(isBuildIgnored('/admin-signing-key/fire-crew-manifest-private.pem'), true);
+  assert.equal(isBuildIgnored('/secrets/another-private.pem'), true);
+  assert.equal(isBuildIgnored('/dist-admin/Fire Crew 모드 관리자.exe'), true);
   assert.equal(isBuildIgnored('/node_modules/@xmcl/user/dist/index.js'), false);
   assert.equal(isBuildIgnored('/node_modules/@xmcl/core/dist/index.js'), false);
 

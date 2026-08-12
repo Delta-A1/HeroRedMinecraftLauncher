@@ -64,6 +64,18 @@ let minecraftService;
 let patchService;
 let skinService;
 let launcherUpdateService;
+let patchStatusPromise = null;
+let modeUpdateInProgress = false;
+let modeUpdateStatus = {
+  state: 'idle',
+  configured: false,
+  available: false,
+  currentVersion: '',
+  latestVersion: '',
+  changedFiles: 0,
+  progress: 0,
+  message: '모드 업데이트 정보를 확인하지 않았습니다.'
+};
 const smokeTest = process.argv.includes('--smoke-test');
 
 function emit(channel, payload) {
@@ -80,6 +92,15 @@ function progress(stage, percent, detail = '') {
     percent: Math.max(0, Math.min(100, Math.round(percent))),
     detail
   });
+  if (modeUpdateInProgress) {
+    modeUpdateStatus = {
+      ...modeUpdateStatus,
+      state: 'updating',
+      progress: Math.max(0, Math.min(100, Math.round(percent))),
+      message: detail || stage
+    };
+    emit('launcher:mode-update-status', modeUpdateStatus);
+  }
 }
 
 function cleanAuthenticationError(error) {
@@ -253,7 +274,7 @@ async function requestJson(urlValue, options = {}) {
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'Fire-Crew-Launcher/1.0.0',
+        'User-Agent': 'Fire-Crew-Launcher/1.0.1',
         ...(options.headers || {})
       }
     });
@@ -349,18 +370,20 @@ async function patchClientOptions() {
 }
 
 async function getPatchStatus() {
-  try {
-    return await patchService.getStatus();
-  } catch (error) {
-    return {
+  if (!patchStatusPromise) {
+    patchStatusPromise = patchService.getStatus().catch((error) => ({
       configured: false,
       ready: false,
+      installedVersion: '',
       changedFiles: 0,
       version: '',
       message: error.message,
       errorCode: error.code || 'PATCH_STATUS_FAILED'
-    };
+    })).finally(() => {
+      patchStatusPromise = null;
+    });
   }
+  return patchStatusPromise;
 }
 
 async function getState() {
@@ -410,6 +433,17 @@ async function getState() {
       version: patch.version,
       message: patch.message
     },
+    modeUpdate: {
+      ...modeUpdateStatus,
+      configured: patch.configured,
+      available: Boolean(base.ready && patch.configured && !patch.ready),
+      currentVersion: patch.installedVersion || modeUpdateStatus.currentVersion || '',
+      latestVersion: patch.version || modeUpdateStatus.latestVersion || '',
+      changedFiles: patch.changedFiles,
+      message: ['checking', 'updating', 'error'].includes(modeUpdateStatus.state)
+        ? modeUpdateStatus.message
+        : patch.message
+    },
     launcherUpdate: launcherUpdateService.getStatus(),
     configurationIssues
   };
@@ -418,6 +452,65 @@ async function getState() {
 async function checkLauncherUpdate() {
   await launcherUpdateService.check();
   return getState();
+}
+
+function setModeUpdateStatus(next) {
+  modeUpdateStatus = { ...modeUpdateStatus, ...next };
+  emit('launcher:mode-update-status', modeUpdateStatus);
+}
+
+async function syncModeUpdates(options = {}) {
+  if (operationInProgress || modeUpdateInProgress) {
+    if (options.automatic) return getState();
+    throw new Error('다른 작업이 진행 중입니다.');
+  }
+  operationInProgress = true;
+  modeUpdateInProgress = true;
+  setModeUpdateStatus({ state: 'checking', progress: 5, message: 'GitHub 모드 목록을 확인하고 있습니다.' });
+  try {
+    const [patch, base] = await Promise.all([getPatchStatus(), minecraftService.getStatus()]);
+    setModeUpdateStatus({
+      configured: patch.configured,
+      currentVersion: patch.installedVersion || '',
+      latestVersion: patch.version || '',
+      changedFiles: patch.changedFiles,
+      available: Boolean(base.ready && patch.configured && !patch.ready)
+    });
+    if (!patch.configured) {
+      setModeUpdateStatus({ state: 'error', progress: 0, message: patch.message || '모드 목록이 설정되지 않았습니다.' });
+      return getState();
+    }
+    if (patch.ready) {
+      setModeUpdateStatus({ state: 'up-to-date', available: false, progress: 100, message: '모드 목록과 설치 파일이 최신 상태입니다.' });
+      return getState();
+    }
+    if (!base.ready) {
+      setModeUpdateStatus({ state: 'available', available: false, progress: 0, message: '새 모드 목록을 확인했습니다. 최초 설치할 때 적용됩니다.' });
+      return getState();
+    }
+    setModeUpdateStatus({ state: 'updating', available: true, progress: 10, message: `${patch.changedFiles}개 변경 파일을 적용합니다.` });
+    const result = await patchService.apply();
+    setModeUpdateStatus({
+      state: 'up-to-date',
+      available: false,
+      currentVersion: result.manifest.version,
+      latestVersion: result.manifest.version,
+      changedFiles: 0,
+      progress: 100,
+      message: result.changedFiles ? `${result.changedFiles}개 모드 파일을 갱신했습니다.` : '모드 목록이 최신 상태입니다.'
+    });
+    return getState();
+  } catch (error) {
+    setModeUpdateStatus({ state: 'error', progress: 0, message: `모드 업데이트 실패: ${error.message}` });
+    if (options.automatic) {
+      log(`자동 모드 업데이트 실패: ${error.message}`, 'warning');
+      return getState();
+    }
+    throw error;
+  } finally {
+    modeUpdateInProgress = false;
+    operationInProgress = false;
+  }
 }
 
 async function installLauncherUpdate() {
@@ -705,6 +798,9 @@ function createWindow() {
   });
   mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
   mainWindow.webContents.once('did-finish-load', () => {
+    syncModeUpdates({ automatic: true })
+      .then((state) => emit('launcher:state-changed', state))
+      .catch((error) => log(`자동 모드 업데이트 확인 실패: ${error.message}`, 'warning'));
     resumeCachedAuthentication().catch((error) => {
       log(`저장된 계정 확인 실패: ${error.message}`, 'warning');
     });
@@ -741,6 +837,7 @@ app.whenReady().then(async () => {
   ipcMain.handle('launcher:install', () => install());
   ipcMain.handle('launcher:launch', launchGame);
   ipcMain.handle('launcher:check-updates', checkLauncherUpdate);
+  ipcMain.handle('launcher:check-mode-updates', () => syncModeUpdates());
   ipcMain.handle('launcher:install-update', installLauncherUpdate);
   ipcMain.handle('launcher:repair', async () => {
     const qaMode = Boolean(runtimeConfig.qaBypassMicrosoftLogin);
