@@ -3,7 +3,7 @@
     "schemaVersion": 1,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-12T00:51:05.697Z",
+    "generatedAt": "2026-08-12T01:50:24.138Z",
     "profile": {
       "id": "fire-crew-26.2-city-building",
       "minecraftVersion": "26.2",
@@ -193,5 +193,5 @@
       "mods/ConnectedGlass-1.1.14-forge-mc26.2.jar"
     ]
   },
-  "signature": "UpPdSinmaE58dwIvc/pmykMslhM0ijpq/bTpoXCqvFUH/q5qMAtAk2MbW9RhNKSuW7FNf3hI747N00wzBExeDA=="
+  "signature": "C9Tg17zPgT9URPGtFunmI1VcAy+UxnNmm+K8Tb3xu6dreDPL7CVCWvPhDR0QyfpKoT0/fFy+jFNcCXpaZSMXBg=="
 }
