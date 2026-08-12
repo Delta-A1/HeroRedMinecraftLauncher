@@ -1,14 +1,17 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { execFile } = require('node:child_process');
 const { EventEmitter } = require('node:events');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const { promisify } = require('node:util');
 const AdmZip = require('adm-zip');
 const {
   LauncherUpdateService,
+  buildApplyScript,
   compareVersions,
   extractArchiveToStaging,
   normalizeRepository,
@@ -18,6 +21,8 @@ const {
   spawnPowerShellScript,
   sha256FromAsset
 } = require('../src/launcher-update-service');
+
+const execFileAsync = promisify(execFile);
 
 test('semantic versions including prereleases are compared correctly', () => {
   assert.equal(compareVersions('0.4.3-login-test.9', '0.4.3-login-test.8'), 1);
@@ -58,9 +63,11 @@ test('PowerShell lookup prioritizes the absolute Windows system path', () => {
 
 test('PowerShell launcher retries after an asynchronous ENOENT and waits for spawn', async () => {
   const commands = [];
+  const optionsSeen = [];
   let unrefCalled = false;
-  const spawnImpl = (command) => {
+  const spawnImpl = (command, _args, options) => {
     commands.push(command);
+    optionsSeen.push(options);
     const child = new EventEmitter();
     child.unref = () => {
       unrefCalled = true;
@@ -84,6 +91,7 @@ test('PowerShell launcher retries after an asynchronous ENOENT and waits for spa
   assert.equal(commands.length, 2);
   assert.equal(command, commands[1]);
   assert.equal(unrefCalled, true);
+  assert.equal(optionsSeen[1].cwd, path.dirname('C:\\update\\apply-update.ps1'));
 });
 
 test('PowerShell launcher reports a clear error when every candidate is missing', async () => {
@@ -102,6 +110,67 @@ test('PowerShell launcher reports a clear error when every candidate is missing'
     spawnPowerShellScript(spawnImpl, 'C:\\update\\apply-update.ps1', { env: {} }),
     (error) => error.code === 'POWERSHELL_NOT_FOUND' && /PowerShell/.test(error.message)
   );
+});
+
+test('update apply script retries file replacement, logs failures, and always restarts', () => {
+  const script = buildApplyScript({
+    processId: 1234,
+    stagingRoot: 'C:\\updates\\staging',
+    installRoot: 'C:\\launcher',
+    executablePath: 'C:\\launcher\\launcher.exe',
+    logFile: 'C:\\updates\\launcher-update.log'
+  });
+
+  assert.match(script, /robocopy\.exe/);
+  assert.match(script, /\/R:8 \/W:1/);
+  assert.match(script, /업데이트 적용 실패/);
+  assert.match(script, /finally \{/);
+  assert.match(script, /Start-Process -FilePath \$executablePath/);
+  assert.match(script, /if \(\$updateSucceeded\).*Remove-Item/);
+});
+
+test('update apply script replaces files and records a restart on Windows', {
+  skip: process.platform !== 'win32'
+}, async (context) => {
+  const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'fire-crew-apply-update-'));
+  context.after(() => fs.rm(temporaryRoot, {
+    recursive: true,
+    force: true,
+    maxRetries: 10,
+    retryDelay: 100
+  }));
+  const stagingRoot = path.join(temporaryRoot, 'staging');
+  const installRoot = path.join(temporaryRoot, '설치 폴더 (test)');
+  const scriptFile = path.join(temporaryRoot, 'apply-update.ps1');
+  const logFile = path.join(temporaryRoot, 'launcher-update.log');
+  await fs.mkdir(stagingRoot, { recursive: true });
+  await fs.mkdir(installRoot, { recursive: true });
+  await fs.writeFile(path.join(stagingRoot, 'payload.txt'), 'new payload');
+  await fs.writeFile(path.join(installRoot, 'payload.txt'), 'old payload');
+  const script = buildApplyScript({
+    processId: 2147483647,
+    stagingRoot,
+    installRoot,
+    executablePath: path.join(process.env.SystemRoot, 'System32', 'whoami.exe'),
+    logFile
+  });
+  await fs.writeFile(scriptFile, `\uFEFF${script}`, 'utf8');
+
+  await execFileAsync(path.join(process.env.SystemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'), [
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    scriptFile
+  ]);
+
+  assert.equal(await fs.readFile(path.join(installRoot, 'payload.txt'), 'utf8'), 'new payload');
+  assert.equal(await fs.stat(stagingRoot).then(() => true, () => false), false);
+  const log = await fs.readFile(logFile, 'utf8');
+  assert.match(log, /업데이트 적용 완료/);
+  assert.match(log, /런처 재시작 요청 완료/);
 });
 
 test('ZIP entries cannot escape the staging directory', () => {

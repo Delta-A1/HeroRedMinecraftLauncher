@@ -155,7 +155,8 @@ async function spawnPowerShellScript(spawnImpl, scriptFile, { env = process.env 
   const spawnOptions = {
     detached: true,
     windowsHide: true,
-    stdio: 'ignore'
+    stdio: 'ignore',
+    cwd: path.dirname(scriptFile)
   };
   let lastNotFoundError = null;
 
@@ -202,14 +203,38 @@ function buildApplyScript({ processId, stagingRoot, installRoot, executablePath,
     `$installRoot = ${powershellLiteral(installRoot)}`,
     `$executablePath = ${powershellLiteral(executablePath)}`,
     `$logFile = ${powershellLiteral(logFile)}`,
-    "Start-Sleep -Milliseconds 700",
-    "$deadline = (Get-Date).AddSeconds(45)",
-    "while ((Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Milliseconds 300 }",
-    "if (Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) { throw '런처가 제한 시간 안에 종료되지 않았습니다.' }",
-    "Get-ChildItem -LiteralPath $stagingRoot -Force | Copy-Item -Destination $installRoot -Recurse -Force",
-    "Start-Process -FilePath $executablePath -WorkingDirectory $installRoot",
-    "'업데이트 적용 완료: ' + (Get-Date).ToString('o') | Set-Content -LiteralPath $logFile -Encoding UTF8",
-    "Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue"
+    "function Write-UpdateLog([string]$message) {",
+    "  $line = (Get-Date).ToString('o') + ' ' + $message",
+    "  Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8",
+    "}",
+    "$updateSucceeded = $false",
+    "Write-UpdateLog '업데이트 적용 시작'",
+    "try {",
+    "  Start-Sleep -Milliseconds 700",
+    "  $deadline = (Get-Date).AddSeconds(45)",
+    "  while ((Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Milliseconds 300 }",
+    "  if (Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) { throw '런처가 제한 시간 안에 종료되지 않았습니다.' }",
+    "  $robocopyPath = Join-Path $env:SystemRoot 'System32\\robocopy.exe'",
+    "  if (-not (Test-Path -LiteralPath $robocopyPath)) { throw 'Windows 파일 복사 도구를 찾을 수 없습니다.' }",
+    "  $robocopyOutput = (& $robocopyPath $stagingRoot $installRoot /E /COPY:DAT /DCOPY:DAT /R:8 /W:1 /XJ /NFL /NDL /NP 2>&1 | Out-String).Trim()",
+    "  $robocopyExitCode = $LASTEXITCODE",
+    "  if ($robocopyOutput) { Write-UpdateLog $robocopyOutput }",
+    "  if ($robocopyExitCode -ge 8) { throw ('파일 교체 실패 (robocopy 종료 코드 ' + $robocopyExitCode + ')') }",
+    "  $updateSucceeded = $true",
+    "  Write-UpdateLog ('업데이트 적용 완료 (robocopy 종료 코드 ' + $robocopyExitCode + ')')",
+    "} catch {",
+    "  Write-UpdateLog ('업데이트 적용 실패: ' + $_.Exception.ToString())",
+    "} finally {",
+    "  try {",
+    "    if (-not (Test-Path -LiteralPath $executablePath)) { throw '재시작할 런처 실행 파일이 없습니다.' }",
+    "    Start-Process -FilePath $executablePath -WorkingDirectory $installRoot",
+    "    Write-UpdateLog '런처 재시작 요청 완료'",
+    "  } catch {",
+    "    Write-UpdateLog ('런처 재시작 실패: ' + $_.Exception.ToString())",
+    "  }",
+    "}",
+    "if ($updateSucceeded) { Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue }",
+    "if (-not $updateSucceeded) { exit 1 }"
   ].join('\r\n');
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "fire-crew-launcher",
   "productName": "불꽃단 런처",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Minecraft 26.2 도시 건축 모드 구성과 실시간 런처 피드를 지원하는 Fire Crew 독립형 Minecraft 런처",
   "main": "src/main.js",
   "author": "Fire Crew",
