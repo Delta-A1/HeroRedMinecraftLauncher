@@ -28,6 +28,11 @@ const { queryMinecraftServer } = require('./server-status');
 const { SkinService } = require('./skin-service');
 const { LauncherUpdateService } = require('./launcher-update-service');
 const {
+  cleanupUpdateHelpers,
+  runUpdateHelper,
+  updateJobFileFromArgv
+} = require('./launcher-update-helper');
+const {
   normalizeSoopPosts,
   resolveSoopBoardIds,
   setOption
@@ -35,7 +40,8 @@ const {
 
 const localAppData = process.env.LOCALAPPDATA || app.getPath('appData');
 const dataRoot = path.join(localAppData, 'FireCrewLauncherLoginTest');
-app.setPath('userData', path.join(dataRoot, 'electron'));
+const updateJobFile = updateJobFileFromArgv();
+app.setPath('userData', path.join(dataRoot, updateJobFile ? 'updater-electron' : 'electron'));
 
 const paths = Object.freeze({
   root: dataRoot,
@@ -912,7 +918,7 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(async () => {
+async function initializeMainApplication() {
   if (smokeTest) {
     process.stdout.write('Fire Crew Launcher packaged dependency smoke test passed.\n');
     app.quit();
@@ -968,6 +974,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('launcher:open-report', async () => shell.openPath(paths.logs));
   ipcMain.handle('launcher:open-external', (_event, url) => openTrustedExternal(url));
   createWindow();
+  cleanupUpdateHelpers(paths.root).catch(() => {});
+}
+
+app.whenReady().then(() => {
+  if (updateJobFile) return runUpdateHelper({ app, BrowserWindow, jobFile: updateJobFile });
+  return initializeMainApplication();
 });
 
 app.on('window-all-closed', () => app.quit());

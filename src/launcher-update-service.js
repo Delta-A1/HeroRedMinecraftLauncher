@@ -1,13 +1,20 @@
 'use strict';
 
 const crypto = require('node:crypto');
-const fs = require('node:fs');
-const fsp = require('node:fs/promises');
+let fs = require('node:fs');
+let fsp = require('node:fs/promises');
 const path = require('node:path');
 const { Readable, Transform } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { spawn } = require('node:child_process');
 const AdmZip = require('adm-zip');
+
+try {
+  fs = require('original-fs');
+  fsp = fs.promises;
+} catch {
+  // original-fs is provided by Electron. Node tests use the standard filesystem.
+}
 
 const MAX_UPDATE_BYTES = 1024 * 1024 * 1024;
 
@@ -91,32 +98,6 @@ function safeEntryPath(root, entryName) {
   return target;
 }
 
-function powershellLiteral(value) {
-  return `'${String(value).replaceAll("'", "''")}'`;
-}
-
-function powerShellCandidates(env = process.env) {
-  const candidates = [];
-  const add = (candidate) => {
-    if (!candidate) return;
-    if (!candidates.some((current) => current.toLowerCase() === candidate.toLowerCase())) {
-      candidates.push(candidate);
-    }
-  };
-
-  for (const windowsRoot of [env.SystemRoot, env.WINDIR]) {
-    if (!windowsRoot) continue;
-    add(path.join(windowsRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'));
-    add(path.join(windowsRoot, 'Sysnative', 'WindowsPowerShell', 'v1.0', 'powershell.exe'));
-  }
-  for (const programFiles of [env.ProgramW6432, env.ProgramFiles, env['ProgramFiles(x86)']]) {
-    if (programFiles) add(path.join(programFiles, 'PowerShell', '7', 'pwsh.exe'));
-  }
-  add('pwsh.exe');
-  add('powershell.exe');
-  return candidates;
-}
-
 function spawnAndConfirm(spawnImpl, command, args, options) {
   return new Promise((resolve, reject) => {
     let child;
@@ -142,40 +123,6 @@ function spawnAndConfirm(spawnImpl, command, args, options) {
   });
 }
 
-async function spawnPowerShellScript(spawnImpl, scriptFile, { env = process.env } = {}) {
-  const args = [
-    '-NoLogo',
-    '-NoProfile',
-    '-NonInteractive',
-    '-ExecutionPolicy',
-    'Bypass',
-    '-File',
-    scriptFile
-  ];
-  const spawnOptions = {
-    detached: true,
-    windowsHide: true,
-    stdio: 'ignore',
-    cwd: path.dirname(scriptFile)
-  };
-  let lastNotFoundError = null;
-
-  for (const command of powerShellCandidates(env)) {
-    try {
-      await spawnAndConfirm(spawnImpl, command, args, spawnOptions);
-      return command;
-    } catch (error) {
-      if (error?.code !== 'ENOENT') throw error;
-      lastNotFoundError = error;
-    }
-  }
-
-  const error = new Error('업데이트 적용에 필요한 Windows PowerShell을 찾을 수 없습니다.');
-  error.code = 'POWERSHELL_NOT_FOUND';
-  error.cause = lastNotFoundError;
-  throw error;
-}
-
 async function extractArchiveToStaging(archive, stagingRoot) {
   const entries = archive.getEntries();
   if (!entries.length) throw new Error('업데이트 ZIP이 비어 있습니다.');
@@ -193,49 +140,6 @@ async function extractArchiveToStaging(archive, stagingRoot) {
     if (!content) throw new Error(`업데이트 ZIP 파일을 압축 해제할 수 없습니다: ${entry.entryName}`);
     await fsp.writeFile(target, content, { flag: 'wx' });
   }
-}
-
-function buildApplyScript({ processId, stagingRoot, installRoot, executablePath, logFile }) {
-  return [
-    "$ErrorActionPreference = 'Stop'",
-    `$processIdToWait = ${Number(processId)}`,
-    `$stagingRoot = ${powershellLiteral(stagingRoot)}`,
-    `$installRoot = ${powershellLiteral(installRoot)}`,
-    `$executablePath = ${powershellLiteral(executablePath)}`,
-    `$logFile = ${powershellLiteral(logFile)}`,
-    "function Write-UpdateLog([string]$message) {",
-    "  $line = (Get-Date).ToString('o') + ' ' + $message",
-    "  Add-Content -LiteralPath $logFile -Value $line -Encoding UTF8",
-    "}",
-    "$updateSucceeded = $false",
-    "Write-UpdateLog '업데이트 적용 시작'",
-    "try {",
-    "  Start-Sleep -Milliseconds 700",
-    "  $deadline = (Get-Date).AddSeconds(45)",
-    "  while ((Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Milliseconds 300 }",
-    "  if (Get-Process -Id $processIdToWait -ErrorAction SilentlyContinue) { throw '런처가 제한 시간 안에 종료되지 않았습니다.' }",
-    "  $robocopyPath = Join-Path $env:SystemRoot 'System32\\robocopy.exe'",
-    "  if (-not (Test-Path -LiteralPath $robocopyPath)) { throw 'Windows 파일 복사 도구를 찾을 수 없습니다.' }",
-    "  $robocopyOutput = (& $robocopyPath $stagingRoot $installRoot /E /COPY:DAT /DCOPY:DAT /R:8 /W:1 /XJ /NFL /NDL /NP 2>&1 | Out-String).Trim()",
-    "  $robocopyExitCode = $LASTEXITCODE",
-    "  if ($robocopyOutput) { Write-UpdateLog $robocopyOutput }",
-    "  if ($robocopyExitCode -ge 8) { throw ('파일 교체 실패 (robocopy 종료 코드 ' + $robocopyExitCode + ')') }",
-    "  $updateSucceeded = $true",
-    "  Write-UpdateLog ('업데이트 적용 완료 (robocopy 종료 코드 ' + $robocopyExitCode + ')')",
-    "} catch {",
-    "  Write-UpdateLog ('업데이트 적용 실패: ' + $_.Exception.ToString())",
-    "} finally {",
-    "  try {",
-    "    if (-not (Test-Path -LiteralPath $executablePath)) { throw '재시작할 런처 실행 파일이 없습니다.' }",
-    "    Start-Process -FilePath $executablePath -WorkingDirectory $installRoot",
-    "    Write-UpdateLog '런처 재시작 요청 완료'",
-    "  } catch {",
-    "    Write-UpdateLog ('런처 재시작 실패: ' + $_.Exception.ToString())",
-    "  }",
-    "}",
-    "if ($updateSucceeded) { Remove-Item -LiteralPath $stagingRoot -Recurse -Force -ErrorAction SilentlyContinue }",
-    "if (-not $updateSucceeded) { exit 1 }"
-  ].join('\r\n');
 }
 
 class LauncherUpdateService {
@@ -425,23 +329,48 @@ class LauncherUpdateService {
       const prepared = await this.downloadAndPrepare();
       const installRoot = path.dirname(this.execPath);
       if (installRoot === path.parse(installRoot).root) throw new Error('안전하지 않은 설치 경로입니다.');
-      const writeTestFile = path.join(installRoot, `.fire-crew-update-write-test-${process.pid}`);
+      const installParent = path.dirname(installRoot);
+      const writeTestFile = path.join(installParent, `.fire-crew-update-write-test-${process.pid}`);
       try {
         await fsp.writeFile(writeTestFile, 'write-test', { flag: 'wx' });
       } finally {
         await fsp.rm(writeTestFile, { force: true });
       }
-      const scriptFile = path.join(prepared.versionRoot, 'apply-update.ps1');
+      this.setStatus({ state: 'preparing', progress: 97, message: '별도 업데이트 도우미를 준비하고 있습니다.' });
+      const helperParent = path.join(this.dataRoot, 'launcher-updater-helper');
+      const helperRoot = path.join(helperParent, `${this.status.latestVersion}-${Date.now()}`);
+      await fsp.mkdir(helperParent, { recursive: true });
+      await fsp.cp(prepared.payloadRoot, helperRoot, {
+        recursive: true,
+        force: true,
+        errorOnExist: false
+      });
+
+      const executableName = path.basename(this.execPath);
+      const helperExecutable = path.join(helperRoot, executableName);
+      await fsp.access(helperExecutable);
       const logFile = path.join(this.dataRoot, 'launcher-update.log');
-      const script = buildApplyScript({
-        processId: process.pid,
+      const jobFile = path.join(prepared.versionRoot, 'update-job.json');
+      await fsp.writeFile(jobFile, JSON.stringify({
+        schemaVersion: 1,
+        parentPid: process.pid,
         stagingRoot: prepared.payloadRoot,
         installRoot,
-        executablePath: this.execPath,
-        logFile
+        helperRoot,
+        versionRoot: prepared.versionRoot,
+        logFile,
+        executableName,
+        targetVersion: this.status.latestVersion
+      }, null, 2), 'utf8');
+
+      await spawnAndConfirm(this.spawn, helperExecutable, [
+        `--launcher-update-job=${jobFile}`
+      ], {
+        detached: true,
+        windowsHide: false,
+        stdio: 'ignore',
+        cwd: helperRoot
       });
-      await fsp.writeFile(scriptFile, `\uFEFF${script}`, 'utf8');
-      await spawnPowerShellScript(this.spawn, scriptFile);
       return { restarting: true };
     } catch (error) {
       this.setStatus({
@@ -456,14 +385,12 @@ class LauncherUpdateService {
 
 module.exports = {
   LauncherUpdateService,
-  buildApplyScript,
   compareVersions,
   extractArchiveToStaging,
   normalizeRepository,
   parseVersion,
-  powerShellCandidates,
   safeEntryPath,
   selectWindowsAsset,
-  spawnPowerShellScript,
+  spawnAndConfirm,
   sha256FromAsset
 };

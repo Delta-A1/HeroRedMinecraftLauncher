@@ -588,6 +588,24 @@ test('클라이언트는 시작 자동 모드 갱신과 수동 확인 버튼을 
   assert.match(html, /id="modeUpdateStatus"/);
 });
 
+test('런처 업데이트는 PowerShell 없이 별도 GUI 도우미에서 백업·롤백·재시작한다', async () => {
+  const root = path.resolve(__dirname, '..');
+  const [mainSource, serviceSource, helperSource] = await Promise.all([
+    fs.readFile(path.join(root, 'src', 'main.js'), 'utf8'),
+    fs.readFile(path.join(root, 'src', 'launcher-update-service.js'), 'utf8'),
+    fs.readFile(path.join(root, 'src', 'launcher-update-helper.js'), 'utf8')
+  ]);
+  assert.match(mainSource, /runUpdateHelper/);
+  assert.match(mainSource, /updater-electron/);
+  assert.doesNotMatch(serviceSource, /powershell|robocopy|apply-update\.ps1/i);
+  assert.match(helperSource, /불꽃단 런처 업데이트/);
+  assert.match(helperSource, /fsp\.rename\(job\.installRoot, backupRoot\)/);
+  assert.match(helperSource, /이전 버전 롤백 완료/);
+  assert.match(helperSource, /confirmRestartStayedAlive/);
+  assert.match(helperSource, /require\('original-fs'\)/);
+  assert.match(helperSource, /window\.setClosable\(true\);\s+window\.close\(\)/);
+});
+
 test('Minecraft 전신 스킨은 설정창 밖 메인 화면에 있고 이전 히어로 문구는 제거한다', async () => {
   const html = await fs.readFile(
     path.join(__dirname, '..', 'src', 'renderer', 'index.html'),
