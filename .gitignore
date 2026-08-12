@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-admin/
 release/
 internal-build/
 .cache/
@@ -8,4 +9,3 @@ internal-build/
 admin-signing-key/
 *.pem
 runtime-config.local.json
-

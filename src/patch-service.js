@@ -9,6 +9,7 @@ const {
   ensureDirectory,
   hashFile,
   mapLimit,
+  normalizeRelativePath,
   pathExists,
   readJson,
   resolveInside,
@@ -74,7 +75,7 @@ function validateManifest(payload, product) {
   if (payload.profile.minecraftVersion !== product.minecraft.version) throw new Error('Minecraft 버전이 서버 구성과 다릅니다.');
   if (payload.profile.forgeVersion !== product.minecraft.forgeVersion) throw new Error('Forge 버전이 서버 구성과 다릅니다.');
   const files = Array.isArray(payload.files) ? payload.files.map((entry) => ({
-    path: String(entry.path || ''),
+    path: normalizeRelativePath(entry.path),
     url: validateHttpsUrl(entry.url),
     size: Number(entry.size) || 0,
     hash: validateHash(entry.hash),
@@ -89,7 +90,7 @@ function validateManifest(payload, product) {
     destination: String(entry.destination || ''),
     managedFiles: Array.isArray(entry.managedFiles) ? entry.managedFiles.map(String) : []
   })) : [];
-  const remove = Array.isArray(payload.remove) ? payload.remove.map(String) : [];
+  const remove = Array.isArray(payload.remove) ? payload.remove.map(normalizeRelativePath) : [];
   return {
     ...payload,
     ready: payload.ready === true,
@@ -141,6 +142,10 @@ class PatchService {
         }
       } catch (error) {
         envelope = this.manifestCacheFile ? await readJson(this.manifestCacheFile, null) : null;
+        if (!envelope && this.localManifestPath) {
+          envelope = await readJson(this.localManifestPath, null);
+          remote = false;
+        }
         if (!envelope) throw error;
         this.onLog?.(`패치 서버 연결 실패, 마지막 검증 정보를 사용합니다: ${error.message}`, 'warning');
       }

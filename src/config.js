@@ -49,6 +49,7 @@ const DEFAULT_RUNTIME_CONFIG = Object.freeze({
   allowUnsignedLocalManifest: true,
   qaBypassMicrosoftLogin: false,
   githubRepository: '',
+  githubOAuthClientId: '',
   githubReleaseAsset: '',
   autoUpdateEnabled: true
 });

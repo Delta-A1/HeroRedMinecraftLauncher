@@ -12,6 +12,9 @@
     "test": "node --test",
     "manifest:key": "node tools/generate-signing-key.cjs",
     "manifest:build": "node tools/build-distribution-manifest.cjs",
+    "modes": "electron tools/mode-list-manager/main.js",
+    "modes:sign": "node tools/sign-mode-list.cjs",
+    "modes:pack": "node tools/build-mode-manager.cjs",
     "pack:win": "node tools/build-windows-package.cjs",
     "release:win": "npm run pack:win && node tools/build-github-release.cjs"
   },

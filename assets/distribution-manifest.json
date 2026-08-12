@@ -17,98 +17,140 @@
         "path": "mods/voicechat-forge-2.6.21+26.2.jar",
         "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/YxH698Mp/voicechat-forge-2.6.21%2B26.2.jar",
         "size": 4910659,
-        "hash": { "algorithm": "sha1", "value": "d17478f66bbb50bf9bd9d996cbab2b7e6d0e7f04" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "d17478f66bbb50bf9bd9d996cbab2b7e6d0e7f04"
+        },
         "source": "Modrinth · Simple Voice Chat · Forge 26.2"
       },
       {
         "path": "mods/xaerominimap-forge-26.2-26.4.3.jar",
         "url": "https://cdn.modrinth.com/data/1bokaNcj/versions/M2VgyuOZ/xaerominimap-forge-26.2-26.4.3.jar",
         "size": 2170640,
-        "hash": { "algorithm": "sha1", "value": "5c9a6bf711d101b6b614cde85815891eca46f30f" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "5c9a6bf711d101b6b614cde85815891eca46f30f"
+        },
         "source": "Modrinth · Xaero's Minimap · Forge 26.2"
       },
       {
         "path": "mods/xaeroworldmap-forge-26.2-1.44.3.jar",
         "url": "https://cdn.modrinth.com/data/NcUtCpym/versions/j36NbtL6/xaeroworldmap-forge-26.2-1.44.3.jar",
         "size": 1441357,
-        "hash": { "algorithm": "sha1", "value": "13bd236d86881b900a06f192ba2c53795f0b155a" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "13bd236d86881b900a06f192ba2c53795f0b155a"
+        },
         "source": "Modrinth · Xaero's World Map · Forge 26.2"
       },
       {
         "path": "mods/MouseTweaks-forge-mc26.2-2.31.jar",
         "url": "https://cdn.modrinth.com/data/aC3cM3Vq/versions/A88Ep3CF/MouseTweaks-forge-mc26.2-2.31.jar",
         "size": 74453,
-        "hash": { "algorithm": "sha1", "value": "52a1e87f809ec598d9122eee7fb84eaadd485019" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "52a1e87f809ec598d9122eee7fb84eaadd485019"
+        },
         "source": "Modrinth · Mouse Tweaks · Forge 26.2"
       },
       {
         "path": "mods/Saros-Road-Blocks-Forge-26.2-5.5.jar",
         "url": "https://cdn.modrinth.com/data/NnMIY8We/versions/7D4YMH24/Saros-Road-Blocks-Forge-26.2-5.5.jar",
         "size": 1755109,
-        "hash": { "algorithm": "sha1", "value": "58642c5482fdf89e4d026bfc29cae2b4cf478c31" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "58642c5482fdf89e4d026bfc29cae2b4cf478c31"
+        },
         "source": "Modrinth · Saro's Road Blocks · Forge 26.2"
       },
       {
         "path": "mods/saros_road_signs_mod-4.6.4.jar",
         "url": "https://cdn.modrinth.com/data/Ba3uA4qP/versions/9mlAvc6E/saros_road_signs_mod-4.6.4.jar",
         "size": 1872571,
-        "hash": { "algorithm": "sha1", "value": "bfe53ce108bb4dc63c6bfefe9dbccaf8b1b8db73" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "bfe53ce108bb4dc63c6bfefe9dbccaf8b1b8db73"
+        },
         "source": "Modrinth · Saro's Road Signs · Forge 26.2"
       },
       {
         "path": "mods/rechiseled-1.2.5-forge-mc26.2.jar",
         "url": "https://cdn.modrinth.com/data/B0g2vT6l/versions/s04BBHHs/rechiseled-1.2.5-forge-mc26.2.jar",
         "size": 11859830,
-        "hash": { "algorithm": "sha1", "value": "34ee503b5f00a3f9637d39d465681e5eb5e705af" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "34ee503b5f00a3f9637d39d465681e5eb5e705af"
+        },
         "source": "Modrinth · Rechiseled · Forge 26.2"
       },
       {
         "path": "mods/mcw-windows-2.4.2-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/C7I0BCni/versions/fFm01AO8/mcw-windows-2.4.2-mc26.2forge.jar",
         "size": 1325192,
-        "hash": { "algorithm": "sha1", "value": "f2328f7134f9f11d014181b66714bfafc54da9f8" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "f2328f7134f9f11d014181b66714bfafc54da9f8"
+        },
         "source": "Modrinth · Macaw's Windows · Forge 26.2"
       },
       {
         "path": "mods/mcw-paths-1.1.1-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/VRLhWB91/versions/1jHnkpZ9/mcw-paths-1.1.1-mc26.2forge.jar",
         "size": 786746,
-        "hash": { "algorithm": "sha1", "value": "229edf53e9efab6b930095f99d04b25039203fa2" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "229edf53e9efab6b930095f99d04b25039203fa2"
+        },
         "source": "Modrinth · Macaw's Paths and Pavings · Forge 26.2"
       },
       {
         "path": "mods/mcw-lights-1.1.5-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/w4an97C2/versions/NAuylsBE/mcw-lights-1.1.5-mc26.2forge.jar",
         "size": 534358,
-        "hash": { "algorithm": "sha1", "value": "454b8142cea9e0c12ddbb40f3c60d7b1788b606e" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "454b8142cea9e0c12ddbb40f3c60d7b1788b606e"
+        },
         "source": "Modrinth · Macaw's Lights and Lamps · Forge 26.2"
       },
       {
         "path": "mods/mcw-furniture-3.4.2-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/dtWC90iB/versions/4GuUAc24/mcw-furniture-3.4.2-mc26.2forge.jar",
         "size": 2266236,
-        "hash": { "algorithm": "sha1", "value": "187439bad61ab58a96ced344b11758272131184e" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "187439bad61ab58a96ced344b11758272131184e"
+        },
         "source": "Modrinth · Macaw's Furniture · Forge 26.2"
       },
       {
         "path": "mods/SkniroFurniture-1.5.1-26.2-Forge.jar",
         "url": "https://cdn.modrinth.com/data/pezpt98N/versions/tec76UIb/SkniroFurniture-1.5.1-26.2-Forge.jar",
         "size": 8913616,
-        "hash": { "algorithm": "sha1", "value": "7fad9952d7bc273643770f2cedaf12cf7cc82ae0" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "7fad9952d7bc273643770f2cedaf12cf7cc82ae0"
+        },
         "source": "Modrinth · Skniro's Furniture · Forge 26.2"
       },
       {
         "path": "mods/mcw-fences-1.2.1-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/GmwLse2I/versions/fgp6p9c8/mcw-fences-1.2.1-mc26.2forge.jar",
         "size": 697700,
-        "hash": { "algorithm": "sha1", "value": "7571a8734b0cb7621f8301800dfc3a1396310169" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "7571a8734b0cb7621f8301800dfc3a1396310169"
+        },
         "source": "Modrinth · Macaw's Fences and Walls · Forge 26.2"
       },
       {
         "path": "mods/mcw-roofs-2.3.3-mc26.2forge.jar",
         "url": "https://cdn.modrinth.com/data/B8jaH3P1/versions/6CPeMKMV/mcw-roofs-2.3.3-mc26.2forge.jar",
         "size": 1843954,
-        "hash": { "algorithm": "sha1", "value": "60cda90c46a3b4a344eb52ff49e3e40634617cfa" },
+        "hash": {
+          "algorithm": "sha1",
+          "value": "60cda90c46a3b4a344eb52ff49e3e40634617cfa"
+        },
         "source": "Modrinth · Macaw's Roofs · Forge 26.2"
       }
     ],
@@ -121,5 +163,5 @@
       "mods/ConnectedGlass-1.1.14-forge-mc26.2.jar"
     ]
   },
-  "signature": ""
+  "signature": "zxqABKowd/QYnkGVcQbdaVMYMtPctOf0cQyKETeCeRI1n9VjO9c36X0M/M4KL0Z8BzS3ZMqTJwwBpxxPZPzPAw=="
 }
