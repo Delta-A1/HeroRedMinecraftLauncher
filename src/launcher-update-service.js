@@ -95,6 +95,86 @@ function powershellLiteral(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+function powerShellCandidates(env = process.env) {
+  const candidates = [];
+  const add = (candidate) => {
+    if (!candidate) return;
+    if (!candidates.some((current) => current.toLowerCase() === candidate.toLowerCase())) {
+      candidates.push(candidate);
+    }
+  };
+
+  for (const windowsRoot of [env.SystemRoot, env.WINDIR]) {
+    if (!windowsRoot) continue;
+    add(path.join(windowsRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'));
+    add(path.join(windowsRoot, 'Sysnative', 'WindowsPowerShell', 'v1.0', 'powershell.exe'));
+  }
+  for (const programFiles of [env.ProgramW6432, env.ProgramFiles, env['ProgramFiles(x86)']]) {
+    if (programFiles) add(path.join(programFiles, 'PowerShell', '7', 'pwsh.exe'));
+  }
+  add('pwsh.exe');
+  add('powershell.exe');
+  return candidates;
+}
+
+function spawnAndConfirm(spawnImpl, command, args, options) {
+  return new Promise((resolve, reject) => {
+    let child;
+    try {
+      child = spawnImpl(command, args, options);
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    let settled = false;
+    child.once('error', (error) => {
+      if (settled) return;
+      settled = true;
+      reject(error);
+    });
+    child.once('spawn', () => {
+      if (settled) return;
+      settled = true;
+      child.unref();
+      resolve(child);
+    });
+  });
+}
+
+async function spawnPowerShellScript(spawnImpl, scriptFile, { env = process.env } = {}) {
+  const args = [
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    scriptFile
+  ];
+  const spawnOptions = {
+    detached: true,
+    windowsHide: true,
+    stdio: 'ignore'
+  };
+  let lastNotFoundError = null;
+
+  for (const command of powerShellCandidates(env)) {
+    try {
+      await spawnAndConfirm(spawnImpl, command, args, spawnOptions);
+      return command;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      lastNotFoundError = error;
+    }
+  }
+
+  const error = new Error('업데이트 적용에 필요한 Windows PowerShell을 찾을 수 없습니다.');
+  error.code = 'POWERSHELL_NOT_FOUND';
+  error.cause = lastNotFoundError;
+  throw error;
+}
+
 async function extractArchiveToStaging(archive, stagingRoot) {
   const entries = archive.getEntries();
   if (!entries.length) throw new Error('업데이트 ZIP이 비어 있습니다.');
@@ -336,20 +416,7 @@ class LauncherUpdateService {
         logFile
       });
       await fsp.writeFile(scriptFile, `\uFEFF${script}`, 'utf8');
-      const child = this.spawn('powershell.exe', [
-        '-NoLogo',
-        '-NoProfile',
-        '-NonInteractive',
-        '-ExecutionPolicy',
-        'Bypass',
-        '-File',
-        scriptFile
-      ], {
-        detached: true,
-        windowsHide: true,
-        stdio: 'ignore'
-      });
-      child.unref();
+      await spawnPowerShellScript(this.spawn, scriptFile);
       return { restarting: true };
     } catch (error) {
       this.setStatus({
@@ -369,7 +436,9 @@ module.exports = {
   extractArchiveToStaging,
   normalizeRepository,
   parseVersion,
+  powerShellCandidates,
   safeEntryPath,
   selectWindowsAsset,
+  spawnPowerShellScript,
   sha256FromAsset
 };

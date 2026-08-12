@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { EventEmitter } = require('node:events');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -11,8 +12,10 @@ const {
   compareVersions,
   extractArchiveToStaging,
   normalizeRepository,
+  powerShellCandidates,
   safeEntryPath,
   selectWindowsAsset,
+  spawnPowerShellScript,
   sha256FromAsset
 } = require('../src/launcher-update-service');
 
@@ -38,6 +41,67 @@ test('Windows x64 update ZIP and GitHub digest are selected', () => {
   const asset = selectWindowsAsset(assets);
   assert.equal(asset.name, 'fire-crew-launcher-windows-x64-v1.2.0.zip');
   assert.equal(sha256FromAsset(asset), 'a'.repeat(64));
+});
+
+test('PowerShell lookup prioritizes the absolute Windows system path', () => {
+  const candidates = powerShellCandidates({
+    SystemRoot: 'C:\\Windows',
+    ProgramFiles: 'C:\\Program Files'
+  });
+
+  assert.equal(
+    candidates[0],
+    path.join('C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
+  );
+  assert.ok(candidates.includes('powershell.exe'));
+});
+
+test('PowerShell launcher retries after an asynchronous ENOENT and waits for spawn', async () => {
+  const commands = [];
+  let unrefCalled = false;
+  const spawnImpl = (command) => {
+    commands.push(command);
+    const child = new EventEmitter();
+    child.unref = () => {
+      unrefCalled = true;
+    };
+    queueMicrotask(() => {
+      if (commands.length === 1) {
+        const error = new Error('not found');
+        error.code = 'ENOENT';
+        child.emit('error', error);
+      } else {
+        child.emit('spawn');
+      }
+    });
+    return child;
+  };
+
+  const command = await spawnPowerShellScript(spawnImpl, 'C:\\update\\apply-update.ps1', {
+    env: { SystemRoot: 'C:\\Windows' }
+  });
+
+  assert.equal(commands.length, 2);
+  assert.equal(command, commands[1]);
+  assert.equal(unrefCalled, true);
+});
+
+test('PowerShell launcher reports a clear error when every candidate is missing', async () => {
+  const spawnImpl = () => {
+    const child = new EventEmitter();
+    child.unref = () => {};
+    queueMicrotask(() => {
+      const error = new Error('not found');
+      error.code = 'ENOENT';
+      child.emit('error', error);
+    });
+    return child;
+  };
+
+  await assert.rejects(
+    spawnPowerShellScript(spawnImpl, 'C:\\update\\apply-update.ps1', { env: {} }),
+    (error) => error.code === 'POWERSHELL_NOT_FOUND' && /PowerShell/.test(error.message)
+  );
 });
 
 test('ZIP entries cannot escape the staging directory', () => {

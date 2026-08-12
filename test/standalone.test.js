@@ -773,7 +773,9 @@ test('Windows 패키징이 앱 출력물은 제외하되 의존성의 dist 실�
   assert.equal(isBuildIgnored('/tools/build-windows-package.cjs'), true);
   assert.equal(isBuildIgnored('/admin-signing-key/fire-crew-manifest-private.pem'), true);
   assert.equal(isBuildIgnored('/secrets/another-private.pem'), true);
+  assert.equal(isBuildIgnored('/dist/mode-update-safe/불꽃단 런처-win32-x64/resources/app.asar'), true);
   assert.equal(isBuildIgnored('/dist-admin/Fire Crew 모드 관리자.exe'), true);
+  assert.equal(isBuildIgnored('/dist-update-fix-check/불꽃단 런처-win32-x64/resources/app.asar'), true);
   assert.equal(isBuildIgnored('/node_modules/@xmcl/user/dist/index.js'), false);
   assert.equal(isBuildIgnored('/node_modules/@xmcl/core/dist/index.js'), false);
 
