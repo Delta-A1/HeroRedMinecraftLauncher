@@ -1,11 +1,15 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const AdmZip = require('adm-zip');
 const {
   LauncherUpdateService,
   compareVersions,
+  extractArchiveToStaging,
   normalizeRepository,
   safeEntryPath,
   selectWindowsAsset,
@@ -41,6 +45,23 @@ test('ZIP entries cannot escape the staging directory', () => {
   assert.equal(safeEntryPath(root, 'resources/app.asar'), path.join(root, 'resources', 'app.asar'));
   assert.throws(() => safeEntryPath(root, '../outside.exe'), /벗어납니다/);
   assert.throws(() => safeEntryPath(root, 'C:\\outside.exe'), /안전하지 않은/);
+});
+
+test('update ZIP is extracted without relying on chmod', async () => {
+  const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'fire-crew-update-'));
+  try {
+    const archive = new AdmZip();
+    archive.addFile('resources/app.asar', Buffer.from('launcher payload'));
+    archive.addFile('launcher.exe', Buffer.from('executable payload'));
+
+    const stagingRoot = path.join(temporaryRoot, 'staging');
+    await extractArchiveToStaging(archive, stagingRoot);
+
+    assert.equal(await fs.readFile(path.join(stagingRoot, 'resources', 'app.asar'), 'utf8'), 'launcher payload');
+    assert.equal(await fs.readFile(path.join(stagingRoot, 'launcher.exe'), 'utf8'), 'executable payload');
+  } finally {
+    await fs.rm(temporaryRoot, { recursive: true, force: true });
+  }
 });
 
 test('latest GitHub release produces an available update state', async () => {

@@ -95,6 +95,25 @@ function powershellLiteral(value) {
   return `'${String(value).replaceAll("'", "''")}'`;
 }
 
+async function extractArchiveToStaging(archive, stagingRoot) {
+  const entries = archive.getEntries();
+  if (!entries.length) throw new Error('업데이트 ZIP이 비어 있습니다.');
+
+  await fsp.mkdir(stagingRoot, { recursive: true });
+  for (const entry of entries) {
+    const target = safeEntryPath(stagingRoot, entry.entryName);
+    if (entry.isDirectory) {
+      await fsp.mkdir(target, { recursive: true });
+      continue;
+    }
+
+    await fsp.mkdir(path.dirname(target), { recursive: true });
+    const content = entry.getData();
+    if (!content) throw new Error(`업데이트 ZIP 파일을 압축 해제할 수 없습니다: ${entry.entryName}`);
+    await fsp.writeFile(target, content, { flag: 'wx' });
+  }
+}
+
 function buildApplyScript({ processId, stagingRoot, installRoot, executablePath, logFile }) {
   return [
     "$ErrorActionPreference = 'Stop'",
@@ -277,11 +296,7 @@ class LauncherUpdateService {
 
     this.setStatus({ state: 'preparing', progress: 93, message: '업데이트 파일을 안전하게 준비하고 있습니다.' });
     const archive = new AdmZip(zipFile);
-    const entries = archive.getEntries();
-    if (!entries.length) throw new Error('업데이트 ZIP이 비어 있습니다.');
-    for (const entry of entries) safeEntryPath(stagingRoot, entry.entryName);
-    await fsp.mkdir(stagingRoot, { recursive: true });
-    archive.extractAllTo(stagingRoot, true);
+    await extractArchiveToStaging(archive, stagingRoot);
 
     const executableName = path.basename(this.execPath);
     let payloadRoot = stagingRoot;
@@ -351,6 +366,7 @@ module.exports = {
   LauncherUpdateService,
   buildApplyScript,
   compareVersions,
+  extractArchiveToStaging,
   normalizeRepository,
   parseVersion,
   safeEntryPath,

@@ -69,7 +69,7 @@ class SkinService {
         signal: controller.signal,
         headers: {
           Accept: 'image/png',
-          'User-Agent': 'Fire-Crew-Launcher/1.0.1'
+          'User-Agent': 'Fire-Crew-Launcher/1.0.3'
         }
       });
       if (!response.ok) throw new Error(`스킨 다운로드 실패 (HTTP ${response.status})`);
