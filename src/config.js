@@ -16,8 +16,11 @@ const PRODUCT = Object.freeze({
   },
   minecraft: {
     version: '26.2',
+    loader: 'forge',
+    loaderVersion: '65.0.9',
     forgeVersion: '65.0.9',
     forgeVersionId: '26.2-forge-65.0.9',
+    versionId: '26.2-forge-65.0.9',
     javaRuntimeTarget: 'java-runtime-epsilon',
     javaMajorVersion: 25
   },
@@ -51,8 +54,91 @@ const DEFAULT_RUNTIME_CONFIG = Object.freeze({
   githubRepository: '',
   githubOAuthClientId: '',
   githubReleaseAsset: '',
-  autoUpdateEnabled: true
+  autoUpdateEnabled: true,
+  profiles: []
 });
+
+function normalizeProfileId(value, fallback = 'default') {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized || fallback;
+}
+
+function splitServerAddress(address, fallbackPort = 25565) {
+  const value = String(address || '').trim();
+  const ipv6 = value.match(/^\[([^\]]+)](?::(\d+))?$/);
+  if (ipv6) {
+    return { host: ipv6[1], port: Number(ipv6[2]) || fallbackPort };
+  }
+  const separator = value.lastIndexOf(':');
+  if (separator > 0 && value.indexOf(':') === separator) {
+    return {
+      host: value.slice(0, separator),
+      port: Number(value.slice(separator + 1)) || fallbackPort
+    };
+  }
+  return { host: value, port: fallbackPort };
+}
+
+function createLaunchProfiles(config = {}, product = PRODUCT) {
+  const entries = Array.isArray(config.profiles) && config.profiles.length
+    ? config.profiles
+    : [{}];
+  const usedIds = new Set();
+  return entries.map((entry, index) => {
+    let id = normalizeProfileId(entry.id, index === 0 ? 'default' : `profile-${index + 1}`);
+    while (usedIds.has(id)) id = `${id}-${index + 1}`;
+    usedIds.add(id);
+    const address = String(entry.server?.address || product.server.address).trim();
+    const parsedServer = splitServerAddress(address, Number(entry.server?.port) || product.server.port);
+    const minecraft = { ...product.minecraft, ...(entry.minecraft || {}) };
+    minecraft.loader = String(minecraft.loader || (minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+    if (minecraft.loader === 'vanilla') {
+      minecraft.loaderVersion = '';
+      minecraft.forgeVersion = '';
+      minecraft.forgeVersionId = minecraft.version;
+      minecraft.versionId = minecraft.version;
+    } else {
+      minecraft.loaderVersion = String(minecraft.loaderVersion || minecraft.forgeVersion || '');
+      minecraft.forgeVersion = String(minecraft.forgeVersion || minecraft.loaderVersion);
+      minecraft.forgeVersionId = String(minecraft.forgeVersionId || minecraft.versionId || `${minecraft.version}-forge-${minecraft.forgeVersion}`);
+      minecraft.versionId = String(minecraft.versionId || minecraft.forgeVersionId);
+    }
+    const pack = { ...product.pack, ...(entry.pack || {}) };
+    return {
+      id,
+      name: String(entry.name || (index === 0 ? product.server.name : `프로필 ${index + 1}`)).trim(),
+      description: String(entry.description || pack.name || '').trim(),
+      server: {
+        ...product.server,
+        ...(entry.server || {}),
+        address,
+        host: String(entry.server?.host || parsedServer.host).trim(),
+        port: Number(entry.server?.port) || parsedServer.port
+      },
+      minecraft,
+      pack,
+      distributionManifestUrl: String(entry.distributionManifestUrl ?? config.distributionManifestUrl ?? '').trim(),
+      distributionPublicKey: String(entry.distributionPublicKey ?? config.distributionPublicKey ?? ''),
+      allowUnsignedLocalManifest: Boolean(
+        entry.allowUnsignedLocalManifest ?? config.allowUnsignedLocalManifest
+      ),
+      bundledManifestPath: entry.bundledManifestPath || config.bundledManifestPath
+    };
+  });
+}
+
+function productForProfile(profile, product = PRODUCT) {
+  return {
+    ...product,
+    server: { ...profile.server },
+    minecraft: { ...profile.minecraft },
+    pack: { ...profile.pack }
+  };
+}
 
 async function readJson(file, fallback = {}) {
   try {
@@ -113,9 +199,11 @@ function getRuntimeConfigurationIssues(config) {
 }
 
 module.exports = {
+  createLaunchProfiles,
   DEFAULT_RUNTIME_CONFIG,
   PRODUCT,
   getRuntimeConfigurationIssues,
   loadRuntimeConfig,
+  productForProfile,
   readJson
 };

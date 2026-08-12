@@ -13,9 +13,11 @@ const {
   exchangeMicrosoftTokenForMinecraft
 } = require('../src/auth-service');
 const {
+  createLaunchProfiles,
   PRODUCT,
   getRuntimeConfigurationIssues,
-  loadRuntimeConfig
+  loadRuntimeConfig,
+  productForProfile
 } = require('../src/config');
 const { resolveInside, writeJsonAtomic } = require('../src/file-utils');
 const {
@@ -198,19 +200,27 @@ test('R9 배포 매니페스트는 Forge 26.2용 도시 건축 모드 14개를 �
     'utf8'
   ));
   assert.equal(manifest.payload.ready, true);
-  assert.equal(manifest.payload.version, 'fire-crew-26.2-city-building-r2');
-  assert.equal(manifest.payload.profile.id, PRODUCT.pack.id);
-  assert.equal(manifest.payload.profile.minecraftVersion, '26.2');
-  assert.equal(manifest.payload.profile.forgeVersion, '65.0.9');
-  assert.equal(manifest.payload.files.length, 14);
-  assert.ok(manifest.payload.files.some((file) => file.path.includes('voicechat-forge-2.6.21')));
-  assert.ok(manifest.payload.files.some((file) => file.path.includes('SkniroFurniture')));
-  assert.ok(manifest.payload.files.some((file) => file.path.includes('mcw-roofs')));
-  assert.ok(manifest.payload.files.every((file) => /^https:\/\/cdn\.modrinth\.com\//.test(file.url)));
-  assert.ok(manifest.payload.files.every((file) => file.hash.algorithm === 'sha1'));
-  assert.deepEqual(manifest.payload.archives, []);
-  assert.ok(manifest.payload.remove.includes('mods/voicechat-forge-2.6.20+26.2.jar'));
-  assert.ok(manifest.payload.remove.some((file) => /connected.?glass/i.test(file)));
+  assert.equal(manifest.payload.schemaVersion, 2);
+  const profile = manifest.payload.profiles.find((entry) => entry.pack.id === PRODUCT.pack.id);
+  assert.equal(profile.version, 'fire-crew-26.2-city-building-r2');
+  assert.equal(profile.minecraft.version, '26.2');
+  assert.equal(profile.minecraft.loader, 'forge');
+  assert.equal(profile.minecraft.forgeVersion, '65.0.9');
+  assert.equal(profile.files.length, 14);
+  assert.ok(profile.files.some((file) => file.path.includes('voicechat-forge-2.6.21')));
+  assert.ok(profile.files.some((file) => file.path.includes('SkniroFurniture')));
+  assert.ok(profile.files.some((file) => file.path.includes('mcw-roofs')));
+  assert.ok(profile.files.every((file) => /^https:\/\/cdn\.modrinth\.com\//.test(file.url)));
+  assert.ok(profile.files.every((file) => file.hash.algorithm === 'sha1'));
+  assert.deepEqual(profile.archives, []);
+  assert.ok(profile.remove.includes('mods/voicechat-forge-2.6.20+26.2.jar'));
+  assert.ok(profile.remove.some((file) => /connected.?glass/i.test(file)));
+  const vanilla = manifest.payload.profiles.find((entry) => entry.id === 'heroreds-freedom');
+  assert.equal(vanilla.minecraft.version, '1.12.2');
+  assert.equal(vanilla.minecraft.loader, 'vanilla');
+  assert.equal(vanilla.server.address, 'heroredsfreedom.run.place');
+  assert.equal(vanilla.server.port, 25565);
+  assert.deepEqual(vanilla.files, []);
 });
 
 test('1.20.1 기반 상태는 26.2 준비 완료로 재사용하지 않는다', () => {
@@ -493,6 +503,73 @@ test('독립형 런처 UI에서 참조하는 모든 요소가 HTML에 존재한�
   for (const id of ids) {
     assert.match(html, new RegExp(`id=["']${id}["']`), `HTML에 #${id}가 있어야 합니다.`);
   }
+});
+
+test('통합 목록에서 선택한 1.12.2 바닐라 프로필만 적용한다', async (context) => {
+  const root = await tempDirectory('fire-crew-vanilla-profile-');
+  context.after(() => fs.rm(root, { recursive: true, force: true }));
+  const bundled = JSON.parse(await fs.readFile(
+    path.join(__dirname, '..', 'assets', 'distribution-manifest.json'),
+    'utf8'
+  ));
+  const vanillaEntry = bundled.payload.profiles.find((profile) => profile.id === 'heroreds-freedom');
+  const manifestFile = path.join(root, 'distribution.json');
+  await writeJsonAtomic(manifestFile, {
+    schemaVersion: 2,
+    ready: true,
+    version: 'catalog-r1',
+    profiles: [vanillaEntry]
+  });
+  const launchProfile = createLaunchProfiles({ profiles: [vanillaEntry] }, PRODUCT)[0];
+  const service = new PatchService({
+    gameRoot: path.join(root, 'game'),
+    cacheRoot: path.join(root, 'cache'),
+    stateFile: path.join(root, 'state.json'),
+    localManifestPath: manifestFile,
+    allowUnsignedLocalManifest: true,
+    product: productForProfile(launchProfile, PRODUCT)
+  });
+  const result = await service.apply();
+  assert.equal(result.manifest.profile.loader, 'vanilla');
+  assert.equal(result.manifest.version, 'heroreds-freedom-1.12.2-vanilla-r1');
+  assert.equal(result.changedFiles, 0);
+  assert.equal((await service.getStatus()).ready, true);
+});
+
+test('Minecraft 1.12.2 바닐라 상태는 Forge 없이 준비 완료로 식별한다', () => {
+  const profile = createLaunchProfiles({ profiles: [{
+    id: 'heroreds-freedom',
+    server: { address: 'heroredsfreedom.run.place', port: 25565 },
+    minecraft: { version: '1.12.2', loader: 'vanilla', javaRuntimeTarget: 'jre-legacy', javaMajorVersion: 8 },
+    pack: { id: 'heroreds-freedom-1.12.2-vanilla', name: 'Vanilla', version: 'r1' }
+  }] }, PRODUCT)[0];
+  const product = productForProfile(profile, PRODUCT);
+  assert.equal(baseStateMatchesProduct({
+    minecraftVersion: '1.12.2',
+    loader: 'vanilla',
+    launchVersionId: '1.12.2',
+    javaRuntimeTarget: 'jre-legacy'
+  }, product), true);
+});
+
+test('서버 프로필별 버전·모드팩·접속 주소를 정규화한다', () => {
+  const profiles = createLaunchProfiles({
+    distributionManifestUrl: 'https://example.com/default.json',
+    profiles: [{
+      id: 'season-two',
+      name: '시즌 2',
+      server: { address: 'play.example.com:25570' },
+      minecraft: { version: '1.20.1', forgeVersion: '47.4.0', forgeVersionId: '1.20.1-forge-47.4.0' },
+      pack: { id: 'season-two-pack', name: 'Season Two', version: 'r1' }
+    }]
+  }, PRODUCT);
+  assert.equal(profiles[0].server.host, 'play.example.com');
+  assert.equal(profiles[0].server.port, 25570);
+  assert.equal(profiles[0].minecraft.version, '1.20.1');
+  assert.equal(profiles[0].distributionManifestUrl, 'https://example.com/default.json');
+  const product = productForProfile(profiles[0], PRODUCT);
+  assert.equal(product.pack.id, 'season-two-pack');
+  assert.equal(product.server.address, 'play.example.com:25570');
 });
 
 test('클라이언트는 시작 자동 모드 갱신과 수동 확인 버튼을 제공한다', async () => {

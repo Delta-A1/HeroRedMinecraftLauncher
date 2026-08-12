@@ -6,7 +6,7 @@ R9 내부 테스트용 Windows 배포본과 같은 기능 구성을 편집 가�
 
 | 항목 | 버전 또는 설정 |
 | --- | --- |
-| 런처 | Fire Crew Launcher `1.0.3` |
+| 런처 | Fire Crew Launcher `1.0.4` |
 | Minecraft Java Edition | `26.2` |
 | Forge | `65.0.9` |
 | Java 런타임 | Mojang `java-runtime-epsilon` / Java 25 |
@@ -15,6 +15,14 @@ R9 내부 테스트용 Windows 배포본과 같은 기능 구성을 편집 가�
 | 대상 OS | Windows 10/11 x64 |
 
 R9에는 Microsoft/Minecraft 기기 코드 로그인, 프로필·스킨 표시, Java·Minecraft·Forge 자동 설치, 증분 패치, 서버 목록 자동 등록, Quick Play 직접 접속, 실시간 서버 접속 인원, SOOP 공지·비밀기지 탭, 3장 배경 루프가 들어 있습니다.
+
+## 서버 프로필 전환
+
+메인 실행 패널의 좌우 삼각형 버튼으로 서버 프로필을 슬라이드 전환할 수 있습니다. 선택한 프로필은 저장되며 다음 실행에도 유지됩니다. 프로필별로 게임·모드 설치 폴더가 분리되므로 서로 다른 Minecraft/Forge/모드 구성을 안전하게 사용할 수 있습니다.
+
+프로필 정보는 서명된 `assets/distribution-manifest.json`의 `profiles` 배열에서 모드 목록과 함께 관리합니다. 각 프로필은 `id`, `name`, `description`, `server`, `minecraft`, `pack`, `files`, `archives`, `remove`를 가지며 첫 프로필은 기존 설치 폴더를 그대로 사용합니다. 모드 목록 관리자에서 프로필을 추가·편집·삭제하고 프로필별 설치 파일을 관리할 수 있습니다.
+
+현재 목록에는 Minecraft 26.2 / Forge 메인 서버와 Minecraft 1.12.2 / Vanilla `heroredsfreedom.run.place` 프로필이 포함되어 있습니다. 바닐라 프로필은 Forge 설치를 건너뛰고 Mojang `jre-legacy` Java 8 런타임을 사용합니다.
 
 ## 개발 시작
 

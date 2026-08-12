@@ -69,19 +69,55 @@ function validateHttpsUrl(value) {
   return url.toString();
 }
 
+function minecraftLoader(minecraft = {}) {
+  return String(minecraft.loader || (minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+}
+
+function selectManifestProfile(payload, product) {
+  if (Number(payload?.schemaVersion) === 1) return payload;
+  if (Number(payload?.schemaVersion) !== 2 || !Array.isArray(payload.profiles)) {
+    throw new Error('지원하지 않는 패치 매니페스트 버전입니다.');
+  }
+  const selected = payload.profiles.find((entry) => entry?.pack?.id === product.pack.id || entry?.id === product.pack.id);
+  if (!selected) throw new Error('선택한 프로필의 모드 목록을 찾지 못했습니다.');
+  return {
+    schemaVersion: 1,
+    ready: payload.ready === true && selected.ready !== false,
+    version: String(selected.version || payload.version || ''),
+    generatedAt: payload.generatedAt,
+    profile: {
+      id: selected.pack?.id || selected.id,
+      minecraftVersion: selected.minecraft?.version,
+      loader: minecraftLoader(selected.minecraft),
+      forgeVersion: selected.minecraft?.forgeVersion || selected.minecraft?.loaderVersion || '',
+      packVersion: selected.pack?.version || selected.version || payload.version || '',
+      koreanPackVersion: selected.pack?.koreanPackVersion || 'none'
+    },
+    archives: selected.archives || [],
+    files: selected.files || [],
+    remove: selected.remove || [],
+    excluded: selected.excluded || []
+  };
+}
+
 function validateManifest(payload, product) {
-  if (Number(payload?.schemaVersion) !== 1) throw new Error('지원하지 않는 패치 매니페스트 버전입니다.');
-  if (payload?.profile?.id !== product.pack.id) throw new Error('다른 모드팩용 패치 매니페스트입니다.');
-  if (payload.profile.minecraftVersion !== product.minecraft.version) throw new Error('Minecraft 버전이 서버 구성과 다릅니다.');
-  if (payload.profile.forgeVersion !== product.minecraft.forgeVersion) throw new Error('Forge 버전이 서버 구성과 다릅니다.');
-  const files = Array.isArray(payload.files) ? payload.files.map((entry) => ({
+  const selected = selectManifestProfile(payload, product);
+  if (selected?.profile?.id !== product.pack.id) throw new Error('다른 모드팩용 패치 매니페스트입니다.');
+  if (selected.profile.minecraftVersion !== product.minecraft.version) throw new Error('Minecraft 버전이 서버 구성과 다릅니다.');
+  const expectedLoader = minecraftLoader(product.minecraft);
+  const selectedLoader = String(selected.profile.loader || (selected.profile.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+  if (selectedLoader !== expectedLoader) throw new Error('Minecraft 로더가 서버 구성과 다릅니다.');
+  if (expectedLoader === 'forge' && selected.profile.forgeVersion !== product.minecraft.forgeVersion) {
+    throw new Error('Forge 버전이 서버 구성과 다릅니다.');
+  }
+  const files = Array.isArray(selected.files) ? selected.files.map((entry) => ({
     path: normalizeRelativePath(entry.path),
     url: validateHttpsUrl(entry.url),
     size: Number(entry.size) || 0,
     hash: validateHash(entry.hash),
     source: String(entry.source || '')
   })) : [];
-  const archives = Array.isArray(payload.archives) ? payload.archives.map((entry) => ({
+  const archives = Array.isArray(selected.archives) ? selected.archives.map((entry) => ({
     id: String(entry.id || ''),
     url: validateHttpsUrl(entry.url),
     size: Number(entry.size) || 0,
@@ -90,10 +126,10 @@ function validateManifest(payload, product) {
     destination: String(entry.destination || ''),
     managedFiles: Array.isArray(entry.managedFiles) ? entry.managedFiles.map(String) : []
   })) : [];
-  const remove = Array.isArray(payload.remove) ? payload.remove.map(normalizeRelativePath) : [];
+  const remove = Array.isArray(selected.remove) ? selected.remove.map(normalizeRelativePath) : [];
   return {
-    ...payload,
-    ready: payload.ready === true,
+    ...selected,
+    ready: selected.ready === true,
     files,
     archives,
     remove
@@ -130,12 +166,13 @@ class PatchService {
             headers: {
               Accept: 'application/json',
               'Cache-Control': 'no-cache',
-              'User-Agent': 'Fire-Crew-Launcher/1.0.3'
+              'User-Agent': `Fire-Crew-Launcher/${this.product.version}`
             }
           });
           if (!response.ok) throw new Error(`패치 정보 조회 실패 (HTTP ${response.status})`);
           envelope = await response.json();
-          verifyManifestEnvelope(envelope, this.publicKey, false);
+          const remotePayload = verifyManifestEnvelope(envelope, this.publicKey, false);
+          validateManifest(remotePayload, this.product);
           if (this.manifestCacheFile) await writeJsonAtomic(this.manifestCacheFile, envelope);
         } finally {
           clearTimeout(timeout);
@@ -397,5 +434,6 @@ module.exports = {
   PatchService,
   stableStringify,
   validateManifest,
+  selectManifestProfile,
   verifyManifestEnvelope
 };

@@ -5,9 +5,11 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { AuthService } = require('./auth-service');
 const {
+  createLaunchProfiles,
   PRODUCT,
   getRuntimeConfigurationIssues,
-  loadRuntimeConfig
+  loadRuntimeConfig,
+  productForProfile
 } = require('./config');
 const {
   ensureDirectory,
@@ -18,7 +20,8 @@ const { migrateLegacyInstance, countMods, findLegacyInstance } = require('./lega
 const { MinecraftService } = require('./minecraft-service');
 const {
   DistributionConfigurationError,
-  PatchService
+  PatchService,
+  verifyManifestEnvelope
 } = require('./patch-service');
 const { upsertServer } = require('./server-list');
 const { queryMinecraftServer } = require('./server-status');
@@ -59,6 +62,10 @@ let mainWindow;
 let operationInProgress = false;
 let gameRunning = false;
 let runtimeConfig;
+let launchProfiles = [];
+let activeProfile;
+let activeProduct = PRODUCT;
+let profilePaths = paths;
 let authService;
 let minecraftService;
 let patchService;
@@ -193,7 +200,88 @@ async function ensureDirectories() {
   ].map(ensureDirectory));
 }
 
+function pathsForProfile(profile) {
+  if (!launchProfiles.length || profile.id === launchProfiles[0].id) return paths;
+  const root = path.join(paths.root, 'profiles', profile.id);
+  return {
+    ...paths,
+    root,
+    cache: path.join(root, 'cache'),
+    game: path.join(root, 'game'),
+    runtime: path.join(root, 'runtime', `java-${profile.minecraft.javaMajorVersion}`),
+    baseState: path.join(root, 'base-install-state.json'),
+    patchState: path.join(root, 'installed-distribution.json'),
+    patchManifestCache: path.join(root, 'cache', 'distribution-manifest.json'),
+    migrationState: path.join(root, 'legacy-migration.json')
+  };
+}
+
+async function loadLaunchProfileCatalog() {
+  const localEnvelope = await readJson(runtimeConfig.bundledManifestPath, null);
+  let localProfiles = [];
+  if (localEnvelope) {
+    const localPayload = verifyManifestEnvelope(
+      localEnvelope,
+      runtimeConfig.distributionPublicKey,
+      runtimeConfig.allowUnsignedLocalManifest
+    );
+    localProfiles = Array.isArray(localPayload.profiles) ? localPayload.profiles : [];
+  }
+  if (runtimeConfig.distributionManifestUrl) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      try {
+        const response = await fetch(runtimeConfig.distributionManifestUrl, {
+          redirect: 'follow',
+          signal: controller.signal,
+          headers: { Accept: 'application/json', 'Cache-Control': 'no-cache', 'User-Agent': `Fire-Crew-Launcher/${PRODUCT.version}` }
+        });
+        if (!response.ok) throw new Error(`프로필 목록 조회 실패 (HTTP ${response.status})`);
+        const envelope = await response.json();
+        const payload = verifyManifestEnvelope(envelope, runtimeConfig.distributionPublicKey, false);
+        if (Array.isArray(payload.profiles) && payload.profiles.length) return payload.profiles;
+      } finally {
+        clearTimeout(timeout);
+      }
+    } catch (error) {
+      log(`원격 프로필 목록 확인 실패, 번들 목록을 사용합니다: ${error.message}`, 'warning');
+    }
+  }
+  return localProfiles.length ? localProfiles : runtimeConfig.profiles;
+}
+
+function createProfileServices() {
+  profilePaths = pathsForProfile(activeProfile);
+  minecraftService = new MinecraftService({
+    gameRoot: profilePaths.game,
+    runtimeRoot: profilePaths.runtime,
+    baseStateFile: profilePaths.baseState,
+    product: activeProduct,
+    onProgress: progress,
+    onLog: log,
+    onGameExit: (value) => {
+      gameRunning = false;
+      emit('launcher:game-exit', value);
+    }
+  });
+  patchService = new PatchService({
+    gameRoot: profilePaths.game,
+    cacheRoot: path.join(profilePaths.cache, 'patch'),
+    stateFile: profilePaths.patchState,
+    manifestCacheFile: profilePaths.patchManifestCache,
+    manifestUrl: activeProfile.distributionManifestUrl,
+    localManifestPath: activeProfile.bundledManifestPath,
+    publicKey: activeProfile.distributionPublicKey,
+    allowUnsignedLocalManifest: activeProfile.allowUnsignedLocalManifest,
+    product: activeProduct,
+    onProgress: progress,
+    onLog: log
+  });
+}
+
 function createServices() {
+  createProfileServices();
   authService = new AuthService({
     clientId: runtimeConfig.microsoftClientId,
     cacheFile: paths.authCache,
@@ -209,31 +297,6 @@ function createServices() {
       });
       progress('Microsoft 인증 완료', 62, 'Minecraft 계정 연결을 확인하고 있습니다.');
     }
-  });
-  minecraftService = new MinecraftService({
-    gameRoot: paths.game,
-    runtimeRoot: paths.runtime,
-    baseStateFile: paths.baseState,
-    product: PRODUCT,
-    onProgress: progress,
-    onLog: log,
-    onGameExit: (value) => {
-      gameRunning = false;
-      emit('launcher:game-exit', value);
-    }
-  });
-  patchService = new PatchService({
-    gameRoot: paths.game,
-    cacheRoot: path.join(paths.cache, 'patch'),
-    stateFile: paths.patchState,
-    manifestCacheFile: paths.patchManifestCache,
-    manifestUrl: runtimeConfig.distributionManifestUrl,
-    localManifestPath: runtimeConfig.bundledManifestPath,
-    publicKey: runtimeConfig.distributionPublicKey,
-    allowUnsignedLocalManifest: runtimeConfig.allowUnsignedLocalManifest,
-    product: PRODUCT,
-    onProgress: progress,
-    onLog: log
   });
   skinService = new SkinService({
     cacheRoot: paths.skins
@@ -358,7 +421,7 @@ async function openTrustedExternal(value) {
 }
 
 async function patchClientOptions() {
-  const optionsFile = path.join(paths.game, 'options.txt');
+  const optionsFile = path.join(profilePaths.game, 'options.txt');
   let current = '';
   try {
     current = await fs.readFile(optionsFile, 'utf8');
@@ -367,6 +430,25 @@ async function patchClientOptions() {
   }
   const next = setOption(current, 'lang', 'ko_kr');
   await fs.writeFile(optionsFile, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
+}
+
+async function selectProfile(profileId) {
+  if (operationInProgress || gameRunning) throw new Error('게임 또는 다른 작업이 진행 중에는 프로필을 변경할 수 없습니다.');
+  const next = launchProfiles.find((profile) => profile.id === String(profileId));
+  if (!next) throw new Error('존재하지 않는 실행 프로필입니다.');
+  if (next.id === activeProfile.id) return getState();
+  activeProfile = next;
+  activeProduct = productForProfile(next);
+  patchStatusPromise = null;
+  modeUpdateStatus = {
+    state: 'idle', configured: false, available: false, currentVersion: '', latestVersion: '',
+    changedFiles: 0, progress: 0, message: '선택한 프로필의 모드 정보를 확인합니다.'
+  };
+  createProfileServices();
+  await ensureDirectory(profilePaths.game);
+  const saved = await readJson(paths.config, { memoryMb: 8192 });
+  await writeJsonAtomic(paths.config, { ...saved, activeProfileId: next.id });
+  return getState();
 }
 
 async function getPatchStatus() {
@@ -388,12 +470,17 @@ async function getPatchStatus() {
 
 async function getState() {
   await ensureDirectories();
+  await Promise.all([
+    profilePaths.game,
+    profilePaths.runtime,
+    profilePaths.cache
+  ].map(ensureDirectory));
   const [saved, auth, base, patch, modCount, legacyInstance] = await Promise.all([
     readJson(paths.config, { memoryMb: 8192 }),
     authService.getStatus(),
     minecraftService.getStatus(),
     getPatchStatus(),
-    countMods(paths.game),
+    countMods(profilePaths.game),
     findLegacyInstance(paths.prismData)
   ]);
   const importedClientReady = modCount >= 250;
@@ -410,7 +497,16 @@ async function getState() {
     });
   }
   return {
-    product: PRODUCT,
+    product: activeProduct,
+    profiles: launchProfiles.map((profile) => ({
+      id: profile.id,
+      name: profile.name,
+      description: profile.description,
+      server: profile.server,
+      minecraft: profile.minecraft,
+      pack: profile.pack
+    })),
+    activeProfileId: activeProfile.id,
     qaMode: Boolean(runtimeConfig.qaBypassMicrosoftLogin),
     installed,
     updateAvailable: Boolean(base.ready && patch.configured && !patch.ready),
@@ -539,7 +635,8 @@ async function recordCompatibility(result, migration) {
   previous.runs.push({
     at: new Date().toISOString(),
     launcherVersion: PRODUCT.version,
-    packVersion: PRODUCT.pack.version,
+    profileId: activeProfile.id,
+    packVersion: activeProduct.pack.version,
     distributionVersion: result?.manifest?.version || 'legacy-import',
     migratedFromPrism: Boolean(migration?.migrated),
     changedFiles: result?.changedFiles || 0,
@@ -555,8 +652,8 @@ async function prepareClientInternal(options = {}) {
 
   const migration = await migrateLegacyInstance({
     prismDataRoot: paths.prismData,
-    gameRoot: paths.game,
-    migrationStateFile: paths.migrationState,
+    gameRoot: profilePaths.game,
+    migrationStateFile: profilePaths.migrationState,
     onProgress: progress,
     onLog: log
   });
@@ -577,14 +674,15 @@ async function prepareClientInternal(options = {}) {
   }
 
   await patchClientOptions();
-  const serverResult = await upsertServer(paths.game, PRODUCT.server);
-  progress('서버 목록 등록', 94, `${PRODUCT.server.name} · ${PRODUCT.server.address}`);
+  const serverResult = await upsertServer(profilePaths.game, activeProduct.server);
+  progress('서버 목록 등록', 94, `${activeProduct.server.name} · ${activeProduct.server.address}`);
   await writeJsonAtomic(paths.config, {
     ...saved,
     memoryMb: Number(saved.memoryMb) || 8192,
-    packVersion: PRODUCT.pack.version,
+    activeProfileId: activeProfile.id,
+    packVersion: activeProduct.pack.version,
     launcherVersion: PRODUCT.version,
-    serverAddress: PRODUCT.server.address,
+    serverAddress: activeProduct.server.address,
     installedAt: saved.installedAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
@@ -641,7 +739,7 @@ async function launchGame() {
     const saved = await readJson(paths.config, { memoryMb: 8192 });
     const result = await minecraftService.launchGame(session, Number(saved.memoryMb) || 8192);
     gameRunning = true;
-    progress('게임 실행 완료', 100, `${PRODUCT.server.name}으로 연결 중`);
+    progress('게임 실행 완료', 100, `${activeProduct.server.name}으로 연결 중`);
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize();
     return result;
   } finally {
@@ -753,12 +851,13 @@ async function repair() {
       repair: true,
       allowIncompleteDistribution: qaMode
     });
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
     progress(
       qaMode ? 'QA 재검사 완료' : '복구 완료',
       100,
       qaMode
         ? '로그인 없이 확인 가능한 기본 파일과 서버 목록을 다시 검사했습니다.'
-        : 'Minecraft·Forge 기본 파일을 모두 다시 검증했습니다.'
+        : `Minecraft·${loaderName} 기본 파일을 모두 다시 검증했습니다.`
     );
     return getState();
   } catch (error) {
@@ -821,12 +920,19 @@ app.whenReady().then(async () => {
   }
   await ensureDirectories();
   runtimeConfig = await loadRuntimeConfig(app.getAppPath(), paths.root);
+  const catalogProfiles = await loadLaunchProfileCatalog();
+  launchProfiles = createLaunchProfiles({ ...runtimeConfig, profiles: catalogProfiles });
+  const savedLauncherState = await readJson(paths.config, {});
+  activeProfile = launchProfiles.find((profile) => profile.id === savedLauncherState.activeProfileId)
+    || launchProfiles[0];
+  activeProduct = productForProfile(activeProfile);
   createServices();
   await authService.initialize();
 
   ipcMain.handle('launcher:get-state', getState);
   ipcMain.handle('launcher:get-soop-posts', getSoopPosts);
-  ipcMain.handle('launcher:get-server-status', () => queryMinecraftServer(PRODUCT.server));
+  ipcMain.handle('launcher:get-server-status', () => queryMinecraftServer(activeProduct.server));
+  ipcMain.handle('launcher:select-profile', (_event, profileId) => selectProfile(profileId));
   ipcMain.handle('launcher:login', login);
   ipcMain.handle('launcher:logout', async () => {
     const status = await authService.getStatus();
@@ -841,12 +947,13 @@ app.whenReady().then(async () => {
   ipcMain.handle('launcher:install-update', installLauncherUpdate);
   ipcMain.handle('launcher:repair', async () => {
     const qaMode = Boolean(runtimeConfig.qaBypassMicrosoftLogin);
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
       title: qaMode ? 'QA 클라이언트 재검사' : '클라이언트 복구',
       message: qaMode
         ? '로그인 없이 확인 가능한 설치 파일과 서버 목록을 다시 검사할까요?'
-        : 'Minecraft·Forge 기본 파일을 모두 다시 검사할까요?',
+        : `Minecraft·${loaderName} 기본 파일을 모두 다시 검사할까요?`,
       detail: qaMode
         ? '실제 게임 실행은 하지 않으며 개인 월드와 스크린샷은 변경하지 않습니다.'
         : '개인 월드와 스크린샷은 유지하며 손상되거나 빠진 파일만 복구합니다.',
@@ -857,7 +964,7 @@ app.whenReady().then(async () => {
     return result.response === 1 ? repair() : getState();
   });
   ipcMain.handle('launcher:set-memory', (_event, value) => setMemory(value));
-  ipcMain.handle('launcher:open-folder', async () => shell.openPath(paths.game));
+  ipcMain.handle('launcher:open-folder', async () => shell.openPath(profilePaths.game));
   ipcMain.handle('launcher:open-report', async () => shell.openPath(paths.logs));
   ipcMain.handle('launcher:open-external', (_event, url) => openTrustedExternal(url));
   createWindow();

@@ -50,6 +50,15 @@ const elements = {
   heroSlides: [...document.querySelectorAll('.hero-slide')],
   serverPopulation: document.querySelector('.server-population'),
   serverPlayerCount: document.querySelector('#serverPlayerCount'),
+  profileCarousel: document.querySelector('#profileCarousel'),
+  profileSlide: document.querySelector('#profileSlide'),
+  profilePrevious: document.querySelector('#profilePreviousButton'),
+  profileNext: document.querySelector('#profileNextButton'),
+  profilePosition: document.querySelector('#profilePosition'),
+  profileName: document.querySelector('#profileName'),
+  profileVersion: document.querySelector('#profileVersion'),
+  profileMode: document.querySelector('#profileMode'),
+  profileServer: document.querySelector('#profileServer'),
   settings: document.querySelector('#settingsPanel'),
   settingsOpen: document.querySelector('#settingsButton'),
   settingsClose: document.querySelector('#settingsCloseButton'),
@@ -204,7 +213,35 @@ function setBusy(value) {
   elements.updateCheck.disabled = value || ['checking', 'downloading', 'preparing', 'ready'].includes(updateState);
   const modeState = state?.modeUpdate?.state;
   elements.modeUpdateCheck.disabled = value || ['checking', 'updating'].includes(modeState);
+  const profileLocked = value || Boolean(state?.gameRunning) || (state?.profiles?.length || 0) < 2;
+  elements.profilePrevious.disabled = profileLocked;
+  elements.profileNext.disabled = profileLocked;
   elements.statusDot.className = `status-dot ${value ? 'busy' : (state?.installed ? 'ready' : '')}`;
+}
+
+function renderProfile(nextState, direction = 0) {
+  const profiles = Array.isArray(nextState.profiles) ? nextState.profiles : [];
+  const index = Math.max(0, profiles.findIndex((profile) => profile.id === nextState.activeProfileId));
+  const profile = profiles[index] || {
+    name: nextState.product.server.name,
+    server: nextState.product.server,
+    minecraft: nextState.product.minecraft,
+    pack: nextState.product.pack
+  };
+  elements.profilePosition.textContent = `PROFILE ${String(index + 1).padStart(2, '0')} / ${String(Math.max(1, profiles.length)).padStart(2, '0')}`;
+  elements.profileName.textContent = profile.name;
+  elements.profileVersion.textContent = `MC ${profile.minecraft.version}`;
+  elements.profileMode.textContent = profile.pack.name || `FORGE ${profile.minecraft.forgeVersion}`;
+  elements.profileServer.textContent = profile.server.address;
+  elements.profileCarousel.title = profile.description || profile.pack.name || profile.name;
+  elements.profileSlide.classList.remove('slide-from-left', 'slide-from-right');
+  if (direction) {
+    void elements.profileSlide.offsetWidth;
+    elements.profileSlide.classList.add(direction > 0 ? 'slide-from-right' : 'slide-from-left');
+  }
+  const locked = busy || nextState.gameRunning || profiles.length < 2;
+  elements.profilePrevious.disabled = locked;
+  elements.profileNext.disabled = locked;
 }
 
 function renderLauncherUpdate(update = {}) {
@@ -283,8 +320,10 @@ function renderAccount(nextState) {
 
 function render(nextState) {
   state = nextState;
+  const loaderName = state.product.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
   elements.memory.value = String(state.memoryMb || 8192);
   elements.launcherBuildLabel.textContent = `Fire Crew Launcher · ${state.product.version} · MC ${state.product.minecraft.version}`;
+  renderProfile(state);
   renderAccount(state);
   renderLauncherUpdate(state.launcherUpdate);
   renderModeUpdate(state.modeUpdate);
@@ -345,7 +384,7 @@ function render(nextState) {
     elements.statusTitle.textContent = '플레이 준비 완료';
     elements.statusDetail.textContent = 'BASE READY';
     elements.progressBar.style.width = '100%';
-    elements.progressText.textContent = 'Minecraft·Forge 기본 파일과 서버 등록이 완료되었습니다.';
+    elements.progressText.textContent = `Minecraft·${loaderName} 기본 파일과 서버 등록이 완료되었습니다.`;
     elements.primaryLabel.textContent = '게임 시작';
     elements.accountNote.textContent = `${state.auth.minecraftName || 'Minecraft 계정'} · 서버 자동 접속`;
   } else {
@@ -357,9 +396,9 @@ function render(nextState) {
     elements.progressBar.style.width = '0%';
     elements.progressText.textContent = state.legacyImportAvailable
       ? 'Prism의 기존 파일을 보존한 채 독립형 폴더로 복사합니다.'
-      : 'Minecraft·Forge 기본 파일을 런처 내부에서 자동으로 준비합니다.';
+      : `Minecraft·${loaderName} 기본 파일을 런처 내부에서 자동으로 준비합니다.`;
     elements.primaryLabel.textContent = '설치하고 바로 접속';
-    elements.accountNote.textContent = '설치가 끝나면 불꽃단 서버로 자동 접속합니다.';
+    elements.accountNote.textContent = `설치가 끝나면 ${state.product.server.name}로 자동 접속합니다.`;
   }
 }
 
@@ -508,6 +547,27 @@ async function refreshState() {
   state = await api.getState();
   render(state);
 }
+
+async function moveProfile(direction) {
+  const profiles = Array.isArray(state?.profiles) ? state.profiles : [];
+  if (busy || state?.gameRunning || profiles.length < 2) return;
+  const currentIndex = Math.max(0, profiles.findIndex((profile) => profile.id === state.activeProfileId));
+  const nextIndex = (currentIndex + direction + profiles.length) % profiles.length;
+  setBusy(true);
+  try {
+    const nextState = await api.selectProfile(profiles[nextIndex].id);
+    render(nextState);
+    renderProfile(nextState, direction);
+    await refreshServerStatus();
+  } catch (error) {
+    showError(error);
+  } finally {
+    setBusy(false);
+  }
+}
+
+elements.profilePrevious.addEventListener('click', () => moveProfile(-1));
+elements.profileNext.addEventListener('click', () => moveProfile(1));
 
 elements.primary.addEventListener('click', async () => {
   setBusy(true);

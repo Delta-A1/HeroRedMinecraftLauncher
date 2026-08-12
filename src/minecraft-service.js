@@ -40,11 +40,17 @@ function createMicrosoftLaunchIdentity(session) {
 }
 
 function baseStateMatchesProduct(state, product) {
+  const loader = String(product.minecraft.loader || (product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+  const savedLoader = String(state?.loader || (state?.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+  const expectedVersionId = loader === 'vanilla'
+    ? product.minecraft.version
+    : product.minecraft.forgeVersionId;
   return Boolean(
     state?.minecraftVersion === product.minecraft.version
-    && state?.forgeVersion === product.minecraft.forgeVersion
+    && savedLoader === loader
     && state?.javaRuntimeTarget === product.minecraft.javaRuntimeTarget
-    && state?.forgeVersionId
+    && (state?.launchVersionId || state?.forgeVersionId) === expectedVersionId
+    && (loader !== 'forge' || state?.forgeVersion === product.minecraft.forgeVersion)
   );
 }
 
@@ -335,8 +341,11 @@ class MinecraftService {
     }
     await writeJsonAtomic(this.baseStateFile, {
       minecraftVersion: this.product.minecraft.version,
+      loader: 'forge',
+      loaderVersion: this.product.minecraft.forgeVersion,
       forgeVersion: this.product.minecraft.forgeVersion,
       forgeVersionId,
+      launchVersionId: forgeVersionId,
       javaRuntimeTarget: this.product.minecraft.javaRuntimeTarget,
       vanillaDependenciesVerified: true,
       dependenciesVerified: true,
@@ -349,10 +358,33 @@ class MinecraftService {
     await ensureDirectory(this.gameRoot);
     const javaPath = await this.ensureRuntime(options);
     await this.ensureVanilla(options);
-    const forgeVersionId = await this.ensureForge(javaPath, options);
+    const loader = String(this.product.minecraft.loader || (this.product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+    let launchVersionId;
+    if (loader === 'vanilla') {
+      const saved = await readJson(this.baseStateFile, {});
+      launchVersionId = this.product.minecraft.version;
+      await writeJsonAtomic(this.baseStateFile, {
+        ...saved,
+        minecraftVersion: this.product.minecraft.version,
+        loader: 'vanilla',
+        loaderVersion: '',
+        forgeVersion: '',
+        forgeVersionId: launchVersionId,
+        launchVersionId,
+        javaRuntimeTarget: this.product.minecraft.javaRuntimeTarget,
+        vanillaDependenciesVerified: true,
+        dependenciesVerified: true,
+        preparedAt: new Date().toISOString()
+      });
+    } else if (loader === 'forge') {
+      launchVersionId = await this.ensureForge(javaPath, options);
+    } else {
+      throw new Error(`지원하지 않는 Minecraft 로더입니다: ${loader}`);
+    }
     return {
       javaPath,
-      forgeVersionId
+      forgeVersionId: launchVersionId,
+      launchVersionId
     };
   }
 
@@ -364,22 +396,26 @@ class MinecraftService {
       && state.vanillaDependenciesVerified === true
       && await pathExists(this.minecraft.getVersionJson(this.product.minecraft.version))
       && await pathExists(this.minecraft.getVersionJar(this.product.minecraft.version));
-    const forgeVersionId = stateMatches
-      ? state.forgeVersionId
-      : this.product.minecraft.forgeVersionId;
-    const forgeReady = await pathExists(this.minecraft.getVersionJson(forgeVersionId));
+    const loader = String(this.product.minecraft.loader || (this.product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+    const launchVersionId = stateMatches
+      ? (state.launchVersionId || state.forgeVersionId)
+      : (loader === 'vanilla' ? this.product.minecraft.version : this.product.minecraft.forgeVersionId);
+    const loaderReady = await pathExists(this.minecraft.getVersionJson(launchVersionId));
     return {
       ready: Boolean(
         stateMatches
         && javaReady
         && vanillaReady
-        && forgeReady
+        && loaderReady
         && state.dependenciesVerified
       ),
       javaReady,
       vanillaReady,
-      forgeReady,
-      forgeVersionId
+      loader,
+      loaderReady,
+      forgeReady: loader === 'forge' ? loaderReady : false,
+      forgeVersionId: launchVersionId,
+      launchVersionId
     };
   }
 
@@ -388,7 +424,7 @@ class MinecraftService {
     if (!baseStateMatchesProduct(state, this.product) || state.dependenciesVerified !== true) {
       throw new Error(`Minecraft ${this.product.minecraft.version} 클라이언트 준비가 필요합니다.`);
     }
-    const forgeVersionId = state.forgeVersionId;
+    const launchVersionId = state.launchVersionId || state.forgeVersionId;
     const maxMemory = Number(memoryMb) || 8192;
     const launchIdentity = createMicrosoftLaunchIdentity(session);
     this.onProgress?.('Minecraft 실행', 99, `${this.product.server.name}에 바로 접속합니다.`);
@@ -396,7 +432,7 @@ class MinecraftService {
       gamePath: this.gameRoot,
       resourcePath: this.gameRoot,
       javaPath: this.javaWindowExecutable,
-      version: forgeVersionId,
+      version: launchVersionId,
       gameProfile: {
         name: session.profile.name,
         id: session.profile.id
@@ -406,7 +442,7 @@ class MinecraftService {
       features: launchIdentity.features,
       launcherName: 'Fire Crew Launcher',
       launcherBrand: 'Fire Crew',
-      versionName: forgeVersionId,
+      versionName: launchVersionId,
       versionType: 'Fire Crew',
       minMemory: Math.min(4096, maxMemory),
       maxMemory,

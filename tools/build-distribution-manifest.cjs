@@ -130,18 +130,22 @@ async function main() {
       .filter((entry) => entry && !/^(saves|screenshots)(\/|$)/i.test(entry) && !/^servers\.dat$/i.test(entry));
     const packStat = await fs.stat(pack.file);
     const packSha256 = await hashFile(pack.file, 'sha256');
-    const payload = {
-      schemaVersion: 1,
-      ready: true,
+    const existingEnvelope = await fs.readFile(path.resolve(args.output), 'utf8')
+      .then(JSON.parse)
+      .catch(() => null);
+    const preservedProfiles = (Array.isArray(existingEnvelope?.payload?.profiles)
+      ? existingEnvelope.payload.profiles
+      : [])
+      .filter((profile) => profile?.pack?.id !== PRODUCT.pack.id);
+    const mainProfile = {
+      id: 'fire-crew-main',
+      name: PRODUCT.server.name,
+      description: PRODUCT.pack.name,
       version: args.version || `${PRODUCT.pack.version}.1`,
-      generatedAt: new Date().toISOString(),
-      profile: {
-        id: PRODUCT.pack.id,
-        minecraftVersion: PRODUCT.minecraft.version,
-        forgeVersion: PRODUCT.minecraft.forgeVersion,
-        packVersion: PRODUCT.pack.version,
-        koreanPackVersion: PRODUCT.pack.koreanPackVersion
-      },
+      ready: true,
+      server: PRODUCT.server,
+      minecraft: PRODUCT.minecraft,
+      pack: PRODUCT.pack,
       archives: [{
         id: `deceasedcraft-overrides-${PRODUCT.pack.version}`,
         url: pack.url,
@@ -154,6 +158,13 @@ async function main() {
       files: outputFiles.sort((a, b) => a.path.localeCompare(b.path)),
       remove: [],
       excluded
+    };
+    const payload = {
+      schemaVersion: 2,
+      ready: true,
+      version: args.version || `${PRODUCT.pack.version}.1`,
+      generatedAt: new Date().toISOString(),
+      profiles: [mainProfile, ...preservedProfiles]
     };
     const privateKey = await fs.readFile(path.resolve(args['private-key']), 'utf8');
     const signature = crypto.sign(

@@ -129,6 +129,28 @@ async function render(width, height, output) {
 
   await page.addInitScript(({ liveFeed }) => {
     const state = {
+      product: {
+        version: '1.0.3',
+        server: { name: '불꽃단 서버', address: '185.207.166.118:19003' },
+        minecraft: { version: '26.2', forgeVersion: '65.0.9' },
+        pack: { name: 'Fire Crew 26.2 City Building' }
+      },
+      profiles: [
+        {
+          id: 'main', name: '불꽃단 메인 서버', description: '도시 건축 모드',
+          server: { name: '불꽃단 서버', address: '185.207.166.118:19003' },
+          minecraft: { version: '26.2', forgeVersion: '65.0.9' },
+          pack: { name: 'Fire Crew 26.2 City Building' }
+        },
+        {
+          id: 'heroreds-freedom', name: "HeroRed's Freedom", description: 'Minecraft 1.12.2 바닐라 서버',
+          server: { name: "HeroRed's Freedom", address: 'heroredsfreedom.run.place' },
+          minecraft: { version: '1.12.2', loader: 'vanilla', loaderVersion: '', forgeVersion: '' },
+          pack: { name: 'Vanilla' }
+        }
+      ],
+      activeProfileId: 'main',
+      qaMode: false,
       installed: true,
       updateAvailable: false,
       importedClientReady: false,
@@ -165,6 +187,12 @@ async function render(width, height, output) {
       getState: async () => state,
       getSoopPosts: async () => liveFeed,
       getServerStatus: async () => ({ online: true, playersOnline: 7, playersMax: 20, sample: [] }),
+      selectProfile: async (profileId) => {
+        state.activeProfileId = profileId;
+        const profile = state.profiles.find((item) => item.id === profileId);
+        state.product = { ...state.product, server: profile.server, minecraft: profile.minecraft, pack: profile.pack };
+        return state;
+      },
       login: async () => state,
       logout: async () => ({ ...state, auth: { ...state.auth, signedIn: false } }),
       checkUpdates: async () => state,
@@ -188,6 +216,10 @@ async function render(width, height, output) {
   await page.goto(pageUrl, { waitUntil: 'load' });
   await page.waitForFunction(() => document.fonts.status === 'loaded');
   await page.waitForTimeout(300);
+  if (process.env.PREVIEW_NEXT_PROFILE === '1') {
+    await page.click('#profileNextButton');
+    await page.waitForTimeout(320);
+  }
   if (process.env.PREVIEW_OPEN_SETTINGS === '1') {
     await page.click('#settingsButton');
     await page.waitForTimeout(180);
@@ -199,6 +231,7 @@ async function render(width, height, output) {
     scrollWidth: document.documentElement.scrollWidth,
     scrollHeight: document.documentElement.scrollHeight,
     newsCount: document.querySelectorAll('.news-item').length,
+    activeProfile: document.querySelector('#profileName')?.textContent.trim(),
     headline: document.querySelector('#mainTitle')?.textContent.replace(/\s+/g, ' ').trim()
   }));
 

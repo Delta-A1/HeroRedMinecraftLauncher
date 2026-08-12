@@ -123,6 +123,25 @@
 
       <section class="launch-dock" aria-label="게임 실행">
         <div class="dock-accent" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div id="profileCarousel" class="profile-carousel" aria-label="서버 프로필 선택">
+          <button id="profilePreviousButton" class="profile-arrow previous" type="button" aria-label="이전 서버 프로필">
+            <span aria-hidden="true"></span>
+          </button>
+          <div class="profile-viewport">
+            <div id="profileSlide" class="profile-slide">
+              <span id="profilePosition" class="profile-position">PROFILE 01 / 01</span>
+              <strong id="profileName">불꽃단 서버</strong>
+              <div class="profile-specs">
+                <span id="profileVersion">MC 26.2</span>
+                <span id="profileMode">FORGE 65.0.9</span>
+                <span id="profileServer">185.207.166.118:19003</span>
+              </div>
+            </div>
+          </div>
+          <button id="profileNextButton" class="profile-arrow next" type="button" aria-label="다음 서버 프로필">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
         <div class="server-population" aria-live="polite">
           <span class="server-population-dot"></span>
           <span>SERVER ONLINE</span>

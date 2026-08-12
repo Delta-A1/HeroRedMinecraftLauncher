@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('fireCrew', {
   getState: () => ipcRenderer.invoke('launcher:get-state'),
   getSoopPosts: () => ipcRenderer.invoke('launcher:get-soop-posts'),
   getServerStatus: () => ipcRenderer.invoke('launcher:get-server-status'),
+  selectProfile: (profileId) => ipcRenderer.invoke('launcher:select-profile', profileId),
   login: () => ipcRenderer.invoke('launcher:login'),
   logout: () => ipcRenderer.invoke('launcher:logout'),
   checkUpdates: () => ipcRenderer.invoke('launcher:check-updates'),
