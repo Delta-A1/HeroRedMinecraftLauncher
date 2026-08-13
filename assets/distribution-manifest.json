@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T17:32:11.060Z",
+    "generatedAt": "2026-08-13T17:36:07.835Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -255,7 +255,7 @@
         "ready": true,
         "server": {
           "name": "백룸",
-          "address": "185.207.166.118",
+          "address": "185.207.166.118:19003",
           "host": "185.207.166.118",
           "port": 19003
         },
@@ -788,5 +788,5 @@
       }
     ]
   },
-  "signature": "LZpDrEJz3ZOYQUNu2Af5FHRbASd+P6wrzJHtO8TiRE7Ifu63u953zlCnLend7ZjYkVRRua9KKsMJf21lfCMCDg=="
+  "signature": "JMTCKkfLNXCl306A7aj9KzhmZuOSPCCh/YfVv9jnwUrLf0ojrPzKVLdE5UqgWr6CX+MJVsg9slI3sip+6Q9pAQ=="
 }
