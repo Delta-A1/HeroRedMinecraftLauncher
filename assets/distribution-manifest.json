@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T16:12:32.395Z",
+    "generatedAt": "2026-08-13T16:32:43.542Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -267,7 +267,7 @@
           "forgeVersionId": "1.20.1-fabric0.19.3",
           "versionId": "1.20.1-fabric0.19.3",
           "javaRuntimeTarget": "jre-legacy",
-          "javaMajorVersion": 8
+          "javaMajorVersion": 17
         },
         "pack": {
           "id": "profile-2-vanilla",
@@ -788,5 +788,5 @@
       }
     ]
   },
-  "signature": "pVt3MnnPHRLSv5MmXR0ZZZi2yWYGrbzDyvHWjpEX6PdLkGpfy0o9yCfUiOAINOkOsJTm2qsAx3Ehu20C1uxPBQ=="
+  "signature": "2c+NE0D0EAWMysT26Y4JE8wfFIDe4bz5IrI7XFrpfVFsbTDBdpyIn5i9dQlHIbUun7sE5ndUfpUlkk9g7y96Dg=="
 }
