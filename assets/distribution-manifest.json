@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T15:36:05.723Z",
+    "generatedAt": "2026-08-13T15:52:33.614Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -261,11 +261,11 @@
         },
         "minecraft": {
           "version": "1.20.1",
-          "loader": "forge",
+          "loader": "fabric",
           "loaderVersion": "",
           "forgeVersion": "",
-          "forgeVersionId": "1.20.1",
-          "versionId": "1.20.1",
+          "forgeVersionId": "1.20.1-fabric",
+          "versionId": "1.20.1-fabric",
           "javaRuntimeTarget": "jre-legacy",
           "javaMajorVersion": 8
         },
@@ -788,5 +788,5 @@
       }
     ]
   },
-  "signature": "um0tXL660xH2aDOCWeBBkGVEWwBG2TtecDaTyIpkOYmIfNkCtZlDM/fg1m8LqtkOURVnEi7fB2zyfBJJ7nBIAg=="
+  "signature": "uSpylmddzuhkZ3VwxS1fwbZqtEE3SaEXNi0xNA9BUtKx3M5cKHM/s92SXQz0hCn7YU8jb5tXs1+2wO1o3FaVAA=="
 }
