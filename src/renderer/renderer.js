@@ -231,7 +231,8 @@ function renderProfile(nextState, direction = 0) {
   elements.profilePosition.textContent = `PROFILE ${String(index + 1).padStart(2, '0')} / ${String(Math.max(1, profiles.length)).padStart(2, '0')}`;
   elements.profileName.textContent = profile.name;
   elements.profileVersion.textContent = `MC ${profile.minecraft.version}`;
-  elements.profileMode.textContent = profile.pack.name || `FORGE ${profile.minecraft.forgeVersion}`;
+  const loader = String(profile.minecraft.loader || (profile.minecraft.forgeVersion ? 'forge' : 'vanilla')).toUpperCase();
+  elements.profileMode.textContent = profile.pack.name || `${loader} ${profile.minecraft.loaderVersion || profile.minecraft.forgeVersion || ''}`.trim();
   elements.profileServer.textContent = profile.server.address;
   elements.profileCarousel.title = profile.description || profile.pack.name || profile.name;
   elements.profileSlide.classList.remove('slide-from-left', 'slide-from-right');
@@ -320,7 +321,7 @@ function renderAccount(nextState) {
 
 function render(nextState) {
   state = nextState;
-  const loaderName = state.product.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
+  const loaderName = state.product.minecraft.loader === 'vanilla' ? 'Vanilla' : state.product.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
   elements.memory.value = String(state.memoryMb || 8192);
   elements.launcherBuildLabel.textContent = `Fire Crew Launcher · ${state.product.version} · MC ${state.product.minecraft.version}`;
   renderProfile(state);

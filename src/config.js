@@ -95,6 +95,7 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
     const address = String(entry.server?.address || product.server.address).trim();
     const parsedServer = splitServerAddress(address, Number(entry.server?.port) || product.server.port);
     const minecraft = { ...product.minecraft, ...(entry.minecraft || {}) };
+    const explicitVersionId = String(entry.minecraft?.versionId || entry.minecraft?.forgeVersionId || '');
     minecraft.loader = String(minecraft.loader || (minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
     if (minecraft.loader === 'vanilla') {
       minecraft.loaderVersion = '';
@@ -102,10 +103,22 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
       minecraft.forgeVersionId = minecraft.version;
       minecraft.versionId = minecraft.version;
     } else {
-      minecraft.loaderVersion = String(minecraft.loaderVersion || minecraft.forgeVersion || '');
-      minecraft.forgeVersion = String(minecraft.forgeVersion || minecraft.loaderVersion);
-      minecraft.forgeVersionId = String(minecraft.forgeVersionId || minecraft.versionId || `${minecraft.version}-forge-${minecraft.forgeVersion}`);
-      minecraft.versionId = String(minecraft.versionId || minecraft.forgeVersionId);
+      const inheritedLoader = String(product.minecraft.loader || (product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+      minecraft.loaderVersion = String(
+        entry.minecraft?.loaderVersion
+        || (minecraft.loader === 'forge' ? minecraft.forgeVersion : '')
+        || (minecraft.loader === inheritedLoader ? product.minecraft.loaderVersion : '')
+        || ''
+      );
+      if (minecraft.loader === 'forge') {
+        minecraft.forgeVersion = minecraft.loaderVersion;
+        minecraft.versionId = explicitVersionId || `${minecraft.version}-forge-${minecraft.loaderVersion}`;
+        minecraft.forgeVersionId = minecraft.versionId;
+      } else {
+        minecraft.forgeVersion = '';
+        minecraft.versionId = explicitVersionId || `${minecraft.version}-${minecraft.loader}${minecraft.loaderVersion}`;
+        minecraft.forgeVersionId = minecraft.versionId;
+      }
     }
     const pack = { ...product.pack, ...(entry.pack || {}) };
     return {

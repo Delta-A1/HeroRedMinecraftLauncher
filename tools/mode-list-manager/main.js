@@ -3,8 +3,9 @@
 const { app, BrowserWindow, clipboard, dialog, ipcMain, safeStorage, shell } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { createPayload, inspectDownload, publishManifest, signPayload } = require('./core');
-const { fetchGithubUser, pollDeviceFlow, startDeviceFlow } = require('./github-auth');
+const crypto = require('node:crypto');
+const { createPayload, inspectDownload, publishManifest, signPayload, validateCurseForgeApiKey } = require('./core');
+const { fetchGithubUser, loginWithPat, pollDeviceFlow, startDeviceFlow } = require('./github-auth');
 
 const projectRoot = path.resolve(__dirname, '..', '..');
 const bundledManifestFile = path.join(projectRoot, 'assets', 'distribution-manifest.json');
@@ -30,6 +31,10 @@ async function ensureWorkingManifest() {
 
 function authTokenFile() {
   return path.join(app.getPath('userData'), 'github-token.bin');
+}
+
+function curseforgeApiKeyFile() {
+  return path.join(app.getPath('userData'), 'curseforge-api-key.bin');
 }
 
 function authSettingsFile() {
@@ -62,6 +67,24 @@ async function loadAuthToken() {
   }
 }
 
+async function saveCurseforgeApiKey(apiKey) {
+  const value = String(apiKey || '').trim();
+  if (value.length < 16) throw new Error('올바른 CurseForge API 키를 입력해 주세요.');
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('Windows 보안 저장소를 사용할 수 없어 CurseForge API 키를 저장하지 않았습니다.');
+  await validateCurseForgeApiKey(value);
+  await fs.mkdir(path.dirname(curseforgeApiKeyFile()), { recursive: true });
+  await fs.writeFile(curseforgeApiKeyFile(), safeStorage.encryptString(value));
+}
+
+async function loadCurseforgeApiKey() {
+  try {
+    if (!safeStorage.isEncryptionAvailable()) return '';
+    return safeStorage.decryptString(await fs.readFile(curseforgeApiKeyFile()));
+  } catch {
+    return '';
+  }
+}
+
 function createWindow() {
   const window = new BrowserWindow({ width: 1260, height: 850, minWidth: 980, minHeight: 680, title: 'Fire Crew 모드 목록 관리자', webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false } });
   window.removeMenu();
@@ -72,10 +95,44 @@ ipcMain.handle('modes:load', async () => JSON.parse(await fs.readFile(await ensu
 ipcMain.handle('modes:choose-key', async () => {
   const result = await dialog.showOpenDialog({ title: 'Ed25519 개인 키 선택', properties: ['openFile'], filters: [{ name: 'PEM 키', extensions: ['pem'] }] });
   if (result.canceled) return '';
-  privateKeyFile = result.filePaths[0];
-  return path.basename(privateKeyFile);
+  const candidate = result.filePaths[0];
+  const [privateKey, runtimeConfig] = await Promise.all([
+    fs.readFile(candidate, 'utf8'),
+    fs.readFile(runtimeConfigFile, 'utf8').then(JSON.parse)
+  ]);
+  const probe = Buffer.from('fire-crew-mode-manager-key-check', 'utf8');
+  const signature = crypto.sign(null, probe, privateKey);
+  if (!crypto.verify(null, probe, runtimeConfig.distributionPublicKey, signature)) {
+    throw new Error('선택한 개인 키가 현재 v1.0.1 이후 런처의 새 배포 공개 키와 일치하지 않습니다. 새 fire-crew-manifest-private.pem을 선택해 주세요.');
+  }
+  privateKeyFile = candidate;
+  const fingerprint = crypto.createHash('sha256')
+    .update(crypto.createPublicKey(privateKey).export({ type: 'spki', format: 'der' }))
+    .digest('hex').slice(0, 12);
+  return { name: path.basename(privateKeyFile), fingerprint };
 });
-ipcMain.handle('modes:inspect', (_event, url) => inspectDownload(url));
+ipcMain.handle('modes:inspect', async (_event, url, options) => inspectDownload(url, {
+  ...options,
+  curseforgeApiKey: await loadCurseforgeApiKey()
+}));
+ipcMain.handle('curseforge:key-status', async () => {
+  const apiKey = await loadCurseforgeApiKey();
+  if (!apiKey) return { configured: false, valid: false };
+  try {
+    await validateCurseForgeApiKey(apiKey);
+    return { configured: true, valid: true };
+  } catch (error) {
+    return { configured: true, valid: false, error: error.message };
+  }
+});
+ipcMain.handle('curseforge:key-save', async (_event, apiKey) => {
+  await saveCurseforgeApiKey(apiKey);
+  return { configured: true, valid: true };
+});
+ipcMain.handle('curseforge:key-remove', async () => {
+  await fs.rm(curseforgeApiKeyFile(), { force: true });
+  return { configured: false };
+});
 ipcMain.handle('github:auth-status', async () => {
   const settings = await loadAuthSettings();
   const token = await loadAuthToken();
@@ -98,6 +155,11 @@ ipcMain.handle('github:auth-poll', async (_event, clientId, flow) => {
   const user = await fetchGithubUser(result.token);
   await saveAuthToken(result.token);
   return { connected: true, user, scope: result.scope };
+});
+ipcMain.handle('github:pat-login', async (_event, tokenValue) => {
+  const result = await loginWithPat(tokenValue);
+  await saveAuthToken(result.token);
+  return { connected: true, user: result.user, method: 'pat' };
 });
 ipcMain.handle('github:auth-logout', async () => {
   await fs.rm(authTokenFile(), { force: true });

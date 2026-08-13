@@ -6,6 +6,7 @@ const path = require('node:path');
 const { MinecraftFolder, Version, launch } = require('@xmcl/core');
 const {
   getVersionList,
+  installFabric,
   installForgeTask,
   installLibrariesTask,
   installVersionTask
@@ -42,15 +43,20 @@ function createMicrosoftLaunchIdentity(session) {
 function baseStateMatchesProduct(state, product) {
   const loader = String(product.minecraft.loader || (product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
   const savedLoader = String(state?.loader || (state?.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
+  const loaderVersion = String(product.minecraft.loaderVersion || product.minecraft.forgeVersion || '');
   const expectedVersionId = loader === 'vanilla'
     ? product.minecraft.version
-    : product.minecraft.forgeVersionId;
+    : String(product.minecraft.versionId || product.minecraft.forgeVersionId || (
+      loader === 'fabric'
+        ? `${product.minecraft.version}-fabric${loaderVersion}`
+        : `${product.minecraft.version}-${loader}-${loaderVersion}`
+    ));
   return Boolean(
     state?.minecraftVersion === product.minecraft.version
     && savedLoader === loader
     && state?.javaRuntimeTarget === product.minecraft.javaRuntimeTarget
     && (state?.launchVersionId || state?.forgeVersionId) === expectedVersionId
-    && (loader !== 'forge' || state?.forgeVersion === product.minecraft.forgeVersion)
+    && (loader === 'vanilla' || String(state?.loaderVersion || state?.forgeVersion || '') === loaderVersion)
   );
 }
 
@@ -354,6 +360,62 @@ class MinecraftService {
     return forgeVersionId;
   }
 
+  async ensureFabric(options = {}) {
+    const minecraftVersion = this.product.minecraft.version;
+    const loaderVersion = String(this.product.minecraft.loaderVersion || '');
+    if (!loaderVersion) throw new Error('Fabric Loader 버전이 설정되지 않았습니다.');
+    const expectedVersionId = String(this.product.minecraft.versionId || `${minecraftVersion}-fabric${loaderVersion}`);
+    const saved = await readJson(this.baseStateFile, {});
+    const savedMatches = baseStateMatchesProduct(saved, this.product);
+    let launchVersionId = expectedVersionId;
+    if (options.repair || !savedMatches || !await pathExists(this.minecraft.getVersionJson(expectedVersionId))) {
+      this.onProgress?.('Fabric 준비', 35, `${loaderVersion} 설치 중`);
+      launchVersionId = await retryInstall(
+        () => installFabric({
+          minecraftVersion,
+          version: loaderVersion,
+          minecraft: this.minecraft,
+          side: 'client',
+          fetch: (url, init) => fetch(url, { ...init, dispatcher: this.downloadDispatcher })
+        }),
+        {
+          attempts: 3,
+          cleanup: () => this.cleanupFailedDownloads(),
+          onRetry: ({ nextAttempt, attempts, error }) => {
+            this.onLog?.(`Fabric 설치 재시도 ${nextAttempt}/${attempts}: ${error?.message || error}`, 'warning');
+          }
+        }
+      );
+      if (launchVersionId !== expectedVersionId) {
+        throw new Error(`Fabric 실행 버전 ID가 설정과 다릅니다: ${launchVersionId}`);
+      }
+    }
+    const resolved = await Version.parse(this.minecraft, launchVersionId);
+    if (options.repair || !savedMatches || saved.dependenciesVerified !== true) {
+      await this.runTaskWithRetries(
+        () => installLibrariesTask(resolved, this.getDownloadOptions({
+          side: 'client',
+          mavenHost: ['https://maven.fabricmc.net', 'https://libraries.minecraft.net']
+        })),
+        [38, 44],
+        'Fabric 라이브러리 확인'
+      );
+    }
+    await writeJsonAtomic(this.baseStateFile, {
+      minecraftVersion,
+      loader: 'fabric',
+      loaderVersion,
+      forgeVersion: '',
+      forgeVersionId: launchVersionId,
+      launchVersionId,
+      javaRuntimeTarget: this.product.minecraft.javaRuntimeTarget,
+      vanillaDependenciesVerified: true,
+      dependenciesVerified: true,
+      preparedAt: new Date().toISOString()
+    });
+    return launchVersionId;
+  }
+
   async prepareBase(options = {}) {
     await ensureDirectory(this.gameRoot);
     const javaPath = await this.ensureRuntime(options);
@@ -378,6 +440,8 @@ class MinecraftService {
       });
     } else if (loader === 'forge') {
       launchVersionId = await this.ensureForge(javaPath, options);
+    } else if (loader === 'fabric') {
+      launchVersionId = await this.ensureFabric(options);
     } else {
       throw new Error(`지원하지 않는 Minecraft 로더입니다: ${loader}`);
     }
@@ -399,7 +463,7 @@ class MinecraftService {
     const loader = String(this.product.minecraft.loader || (this.product.minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
     const launchVersionId = stateMatches
       ? (state.launchVersionId || state.forgeVersionId)
-      : (loader === 'vanilla' ? this.product.minecraft.version : this.product.minecraft.forgeVersionId);
+      : (loader === 'vanilla' ? this.product.minecraft.version : (this.product.minecraft.versionId || this.product.minecraft.forgeVersionId));
     const loaderReady = await pathExists(this.minecraft.getVersionJson(launchVersionId));
     return {
       ready: Boolean(
@@ -414,6 +478,7 @@ class MinecraftService {
       loader,
       loaderReady,
       forgeReady: loader === 'forge' ? loaderReady : false,
+      fabricReady: loader === 'fabric' ? loaderReady : false,
       forgeVersionId: launchVersionId,
       launchVersionId
     };

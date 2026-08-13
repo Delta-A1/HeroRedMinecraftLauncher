@@ -12,7 +12,10 @@ async function main() {
   const releaseDirectory = path.join(projectRoot, 'release');
   const assetName = `fire-crew-launcher-windows-x64-v${project.version}.zip`;
   const assetFile = path.join(releaseDirectory, assetName);
+  const installerName = `fire-crew-launcher-setup-v${project.version}.exe`;
+  const installerFile = path.join(releaseDirectory, installerName);
   await fs.access(path.join(buildDirectory, '불꽃단 런처.exe'));
+  await fs.access(installerFile);
   await fs.mkdir(releaseDirectory, { recursive: true });
 
   const archive = new AdmZip();
@@ -22,7 +25,11 @@ async function main() {
   });
   const digest = crypto.createHash('sha256').update(await fs.readFile(assetFile)).digest('hex');
   await fs.writeFile(`${assetFile}.sha256`, `${digest}  ${assetName}\n`, 'utf8');
-  process.stdout.write(`GitHub Release 자산을 생성했습니다:\n${assetFile}\n${assetFile}.sha256\n`);
+  const installerDigest = crypto.createHash('sha256').update(await fs.readFile(installerFile)).digest('hex');
+  await fs.writeFile(`${installerFile}.sha256`, `${installerDigest}  ${installerName}\n`, 'utf8');
+  process.stdout.write(
+    `GitHub Release 자산을 생성했습니다:\n${installerFile}\n${installerFile}.sha256\n${assetFile}\n${assetFile}.sha256\n`
+  );
 }
 
 if (require.main === module) {

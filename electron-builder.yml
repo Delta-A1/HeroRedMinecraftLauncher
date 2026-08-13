@@ -1,0 +1,22 @@
+appId: run.place.heroredsfreedom.firecrewlauncher
+productName: 불꽃단 런처
+directories:
+  output: release
+  buildResources: assets
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: assets/logo.ico
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  artifactName: fire-crew-launcher-setup-v${version}.${ext}
+  include: build/installer.nsh
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: 불꽃단 런처
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false

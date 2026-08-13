@@ -46,6 +46,7 @@ async function createJobFixture(context, { completePayload = true } = {}) {
   await fs.writeFile(path.join(installRoot, '불꽃단 런처.exe'), 'old executable');
   await fs.writeFile(path.join(installRoot, 'payload.txt'), 'old payload');
   await fs.writeFile(path.join(installRoot, 'resources', 'app.asar'), 'old asar');
+  await fs.writeFile(path.join(installRoot, 'Uninstall Fire Crew Launcher.exe'), 'installer uninstaller');
   return {
     schemaVersion: 1,
     parentPid: 2147483647,
@@ -88,6 +89,10 @@ test('GUI updater atomically replaces the install directory and restarts the new
   assert.equal(result.updated, true);
   assert.equal(await fs.readFile(path.join(job.installRoot, 'payload.txt'), 'utf8'), 'new payload');
   assert.equal(await fs.readFile(path.join(job.installRoot, 'resources', 'app.asar'), 'utf8'), 'new asar');
+  assert.equal(
+    await fs.readFile(path.join(job.installRoot, 'Uninstall Fire Crew Launcher.exe'), 'utf8'),
+    'installer uninstaller'
+  );
   assert.equal(spawnCalls.length, 1);
   assert.equal(spawnCalls[0].command, path.join(job.installRoot, job.executableName));
   assert.ok(spawnCalls[0].args.some((argument) => argument.startsWith('--cleanup-update-helper=')));

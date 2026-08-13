@@ -69,4 +69,10 @@ async function fetchGithubUser(token, fetchImpl = fetch) {
   return { login: body.login, avatarUrl: body.avatar_url || '', profileUrl: body.html_url || '' };
 }
 
-module.exports = { fetchGithubUser, pollDeviceFlow, startDeviceFlow, validateClientId };
+async function loginWithPat(tokenValue, fetchImpl = fetch) {
+  const token = String(tokenValue || '').trim();
+  if (token.length < 20) throw new Error('유효한 GitHub Personal Access Token을 입력해 주세요.');
+  return { token, user: await fetchGithubUser(token, fetchImpl) };
+}
+
+module.exports = { fetchGithubUser, loginWithPat, pollDeviceFlow, startDeviceFlow, validateClientId };

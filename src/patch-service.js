@@ -89,6 +89,7 @@ function selectManifestProfile(payload, product) {
       id: selected.pack?.id || selected.id,
       minecraftVersion: selected.minecraft?.version,
       loader: minecraftLoader(selected.minecraft),
+      loaderVersion: selected.minecraft?.loaderVersion || selected.minecraft?.forgeVersion || '',
       forgeVersion: selected.minecraft?.forgeVersion || selected.minecraft?.loaderVersion || '',
       packVersion: selected.pack?.version || selected.version || payload.version || '',
       koreanPackVersion: selected.pack?.koreanPackVersion || 'none'
@@ -107,8 +108,10 @@ function validateManifest(payload, product) {
   const expectedLoader = minecraftLoader(product.minecraft);
   const selectedLoader = String(selected.profile.loader || (selected.profile.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
   if (selectedLoader !== expectedLoader) throw new Error('Minecraft 로더가 서버 구성과 다릅니다.');
-  if (expectedLoader === 'forge' && selected.profile.forgeVersion !== product.minecraft.forgeVersion) {
-    throw new Error('Forge 버전이 서버 구성과 다릅니다.');
+  if (expectedLoader !== 'vanilla') {
+    const expectedLoaderVersion = String(product.minecraft.loaderVersion || product.minecraft.forgeVersion || '');
+    const selectedLoaderVersion = String(selected.profile.loaderVersion || selected.profile.forgeVersion || '');
+    if (selectedLoaderVersion !== expectedLoaderVersion) throw new Error(`${expectedLoader} 버전이 서버 구성과 다릅니다.`);
   }
   const files = Array.isArray(selected.files) ? selected.files.map((entry) => ({
     path: normalizeRelativePath(entry.path),

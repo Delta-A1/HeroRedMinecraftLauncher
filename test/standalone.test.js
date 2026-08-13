@@ -505,6 +505,46 @@ test('독립형 런처 UI에서 참조하는 모든 요소가 HTML에 존재한�
   }
 });
 
+test('Fabric 프로필과 설치 상태는 로더 버전 및 실행 버전 ID로 일치 여부를 판단한다', () => {
+  const fabricProduct = {
+    ...PRODUCT,
+    minecraft: {
+      ...PRODUCT.minecraft,
+      version: '1.20.1', loader: 'fabric', loaderVersion: '0.16.14',
+      forgeVersion: '', forgeVersionId: '1.20.1-fabric0.16.14', versionId: '1.20.1-fabric0.16.14',
+      javaRuntimeTarget: 'java-runtime-gamma', javaMajorVersion: 17
+    }
+  };
+  assert.equal(baseStateMatchesProduct({
+    minecraftVersion: '1.20.1', loader: 'fabric', loaderVersion: '0.16.14',
+    launchVersionId: '1.20.1-fabric0.16.14', javaRuntimeTarget: 'java-runtime-gamma'
+  }, fabricProduct), true);
+  assert.equal(baseStateMatchesProduct({
+    minecraftVersion: '1.20.1', loader: 'fabric', loaderVersion: '0.15.11',
+    launchVersionId: '1.20.1-fabric0.15.11', javaRuntimeTarget: 'java-runtime-gamma'
+  }, fabricProduct), false);
+});
+
+test('Fabric 서버 프로필은 Forge 기본값을 상속하지 않고 Fabric 실행 ID로 정규화된다', () => {
+  const [profile] = createLaunchProfiles({ profiles: [{
+    id: 'fabric-test',
+    minecraft: { version: '1.20.1', loader: 'fabric', loaderVersion: '0.16.14' },
+    pack: { id: 'fabric-test-pack' }
+  }] }, PRODUCT);
+  assert.equal(profile.minecraft.loader, 'fabric');
+  assert.equal(profile.minecraft.loaderVersion, '0.16.14');
+  assert.equal(profile.minecraft.forgeVersion, '');
+  assert.equal(profile.minecraft.versionId, '1.20.1-fabric0.16.14');
+  assert.equal(profile.minecraft.forgeVersionId, '1.20.1-fabric0.16.14');
+});
+
+test('런처 서비스가 Fabric 설치와 라이브러리 준비 분기를 제공한다', async () => {
+  const source = await fs.readFile(path.join(__dirname, '..', 'src', 'minecraft-service.js'), 'utf8');
+  assert.match(source, /installFabric\(\{/);
+  assert.match(source, /loader === 'fabric'/);
+  assert.match(source, /'Fabric 라이브러리 확인'/);
+});
+
 test('통합 목록에서 선택한 1.12.2 바닐라 프로필만 적용한다', async (context) => {
   const root = await tempDirectory('fire-crew-vanilla-profile-');
   context.after(() => fs.rm(root, { recursive: true, force: true }));

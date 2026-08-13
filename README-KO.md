@@ -110,7 +110,7 @@ npm run modes:pack
 
 관리 도구 안에서 GitHub에 로그인할 수도 있습니다. GitHub Developer settings에서 OAuth App을 등록하고 **Enable Device Flow**를 켠 뒤 공개 Client ID를 입력합니다. 로그인 버튼을 누르면 브라우저가 열리고 인증 코드가 클립보드에 복사됩니다. 발급된 OAuth 토큰은 Windows 보안 저장소로 암호화되며 로그아웃 버튼으로 이 기기에서 삭제할 수 있습니다. OAuth App을 사용하지 않는 경우 기존처럼 PAT를 일회성으로 입력할 수도 있습니다.
 
-모드 추가 시 직접 다운로드 주소 대신 `https://modrinth.com/mod/...` 형태의 프로젝트 페이지를 넣고 **자동 확인**을 누르면 Minecraft 26.2와 Forge 조건에 맞는 최신 버전을 선택해 실제 CDN 주소, 파일명, 크기와 SHA-1을 채웁니다.
+모드 추가 시 직접 다운로드 주소 대신 Modrinth 또는 CurseForge의 모드·모드팩 프로젝트 페이지를 넣고 **자동 확인**을 누르면 현재 프로필의 Minecraft 버전과 로더에 맞는 최신 파일을 선택합니다. CurseForge 모드팩의 버전이 현재 프로필과 다르면 최신 모드팩의 `manifest.json`을 기준으로 Minecraft·Forge/Fabric 버전을 자동 선택하고, 필수 모드와 `overrides` 설정까지 목록에 가져옵니다. Minecraft 버전과 구동기 버전은 관리자 화면의 목록에서 선택할 수 있으며 클라이언트는 Vanilla, Forge, Fabric 프로필을 설치하고 실행합니다. CurseForge 링크를 처음 사용할 때는 **CurseForge 연동**에서 API 키를 한 번 저장해야 하며, 키는 Windows 보안 저장소에 암호화됩니다.
 
 최초 키는 `npm run manifest:key`로 만들 수 있습니다. 개인 키는 런처나 GitHub에 포함하지 말고 별도로 백업해야 합니다. 공개 키만 `distributionPublicKey`에 넣습니다. 현재 기본 원격 목록은 `Delta-A1/HeroRedMinecraftLauncher` 저장소의 `main/assets/distribution-manifest.json`입니다.
 

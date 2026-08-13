@@ -14,11 +14,52 @@
   <main>
     <section class="panel summary">
       <label>목록 버전<input id="version" placeholder="fire-crew-26.2-city-building-r3"></label>
-      <label>제거할 파일 경로 <span>(한 줄에 하나)</span><textarea id="remove" rows="3"></textarea></label>
+      <p>서버 프로필과 각 프로필의 설치 파일을 하나의 서명된 목록으로 관리합니다.</p>
+    </section>
+    <section class="panel profile-panel">
+      <div class="section-title">
+        <div><h2>서버 프로필</h2><p>런처의 슬라이드 선택 화면과 실제 설치·접속 설정에 함께 반영됩니다.</p></div>
+        <div class="profile-actions">
+          <select id="profileSelect" aria-label="편집할 서버 프로필"></select>
+          <button id="addProfileButton">+ 프로필 추가</button>
+          <button id="removeProfileButton" class="danger">프로필 삭제</button>
+        </div>
+      </div>
+      <div class="profile-grid">
+        <label>프로필 ID<input id="profileId" placeholder="fire-crew-main"></label>
+        <label>표시 이름<input id="profileName" placeholder="불꽃단 메인 서버"></label>
+        <label class="wide">설명<input id="profileDescription" placeholder="프로필 설명"></label>
+        <label>서버 이름<input id="serverName" placeholder="불꽃단 서버"></label>
+        <label>접속 주소<input id="serverAddress" placeholder="example.com:25565"></label>
+        <label>서버 포트<input id="serverPort" type="number" min="1" max="65535" placeholder="25565"></label>
+        <label>Minecraft 버전<select id="minecraftVersion"><option>26.2</option><option>1.21.1</option><option>1.20.1</option><option>1.19.2</option><option>1.18.2</option><option>1.16.5</option><option>1.12.2</option></select></label>
+        <label>구동기 (로더)<select id="minecraftLoader"><option value="forge">Forge</option><option value="fabric">Fabric</option><option value="vanilla">Vanilla</option></select></label>
+        <label>구동기 버전<select id="loaderVersion"><option value="">자동 / 미설정</option><option>65.0.9</option><option>47.4.0</option><option>47.2.0</option><option>43.4.0</option><option>40.2.0</option><option>36.2.42</option><option>14.23.5.2860</option></select></label>
+        <label>실행 버전 ID<input id="versionId" placeholder="26.2-forge-65.0.9"></label>
+        <label>Java 런타임 대상<input id="javaRuntimeTarget" placeholder="java-runtime-epsilon"></label>
+        <label>Java 버전<input id="javaMajorVersion" type="number" min="8" placeholder="25"></label>
+        <label>모드팩 ID<input id="packId" placeholder="fire-crew-26.2-city-building"></label>
+        <label>모드/구성 이름<input id="packName" placeholder="Vanilla 또는 모드팩 이름"></label>
+        <label>프로필 배포 버전<input id="profileVersion" placeholder="profile-r1"></label>
+        <label class="wide">제거할 파일 경로 <span>(한 줄에 하나)</span><textarea id="remove" rows="3"></textarea></label>
+      </div>
+    </section>
+    <section class="panel curseforge">
+      <div class="section-title">
+        <div><h2>CurseForge 연동</h2><p>승인된 제3자 개발자용 Core API 키를 검사한 뒤 Windows 보안 저장소에 암호화해 보관합니다.</p></div>
+        <div id="curseforgeKeyStatus">API 키 미설정</div>
+      </div>
+      <div class="curseforge-key-row">
+        <label>CurseForge Core API 키<input id="curseforgeApiKey" type="password" autocomplete="off" placeholder="승인된 3rd-party Core API key"></label>
+        <button id="curseforgeKeySaveButton" class="secondary">검사 후 저장</button>
+        <button id="curseforgeKeyRemoveButton" class="danger">키 제거</button>
+        <button id="curseforgeHelpButton" class="secondary">API 키 안내</button>
+      </div>
     </section>
     <section class="panel">
-      <div class="section-title"><div><h2>설치 파일</h2><p>직접 다운로드 URL 또는 Modrinth 프로젝트 페이지 URL을 입력하세요. Minecraft 26.2 / Forge 파일을 자동 선택합니다.</p></div><button id="addButton">+ 모드 추가</button></div>
+      <div class="section-title"><div><h2>선택 프로필 설치 파일</h2><p id="modeCompatibility">현재 프로필의 Minecraft 버전과 로더에 맞는 파일을 자동 선택합니다.</p></div><button id="addButton">+ 모드 추가</button></div>
       <div id="modeList" class="mode-list"></div>
+      <div id="archiveList" class="archive-list"></div>
     </section>
     <section class="panel github">
       <div class="section-title"><div><h2>GitHub 게시</h2><p>Contents API로 서명된 JSON만 커밋합니다. OAuth 토큰은 Windows 보안 저장소에 암호화하고 개인 키는 저장하지 않습니다.</p></div></div>
@@ -33,7 +74,9 @@
         <label>저장소<input id="repository" value="Delta-A1/HeroRedMinecraftLauncher"></label>
         <label>브랜치<input id="branch" value="main"></label>
         <label>파일 경로<input id="githubPath" value="assets/distribution-manifest.json"></label>
-        <label>PAT (로그인하지 않을 때만)<input id="token" type="password" autocomplete="off" placeholder="선택 사항 · Contents: Read and write"></label>
+        <label>PAT 로그인<input id="token" type="password" autocomplete="off" placeholder="Fine-grained PAT · Contents: Read and write"></label>
+        <button id="patLoginButton" class="secondary">PAT로 로그인</button>
+        <button id="patHelpButton" class="secondary">토큰 발급 페이지</button>
         <label class="wide">커밋 메시지<input id="message" placeholder="Update Fire Crew mode list"></label>
       </div>
       <button id="publishButton" class="publish">서명하고 GitHub에 게시</button>
@@ -47,13 +90,19 @@
         <label class="source">표시 이름 / 출처<input data-field="source" placeholder="Example Mod · Modrinth"></label>
         <button data-action="remove" class="danger" title="삭제">삭제</button>
       </div>
-      <label>다운로드 URL 또는 Modrinth 페이지<input data-field="url" type="url" placeholder="https://modrinth.com/mod/... 또는 https://cdn..."></label>
+      <label>다운로드 URL 또는 Modrinth / CurseForge 페이지<input data-field="url" type="url" placeholder="https://modrinth.com/... 또는 https://www.curseforge.com/minecraft/..."></label>
       <div class="mode-row details">
         <label>크기 (bytes)<input data-field="size" type="number" min="0"></label>
         <label class="hash">SHA-256 / 기존 해시<input data-field="hash" spellcheck="false"></label>
         <select data-field="algorithm" aria-label="해시 알고리즘"><option>sha256</option><option>sha1</option><option>md5</option></select>
         <button data-action="inspect" class="secondary">자동 확인</button>
       </div>
+    </article>
+  </template>
+  <template id="archiveTemplate">
+    <article class="archive-card">
+      <div><strong data-field="id"></strong><small data-field="details"></small></div>
+      <button data-action="remove" class="danger">오버라이드 제거</button>
     </article>
   </template>
   <script src="renderer.js"></script>

@@ -91,6 +91,15 @@ let modeUpdateStatus = {
 };
 const smokeTest = process.argv.includes('--smoke-test');
 
+function expectedInstallRoot(localData = localAppData) {
+  return path.resolve(localData, 'Programs', 'FireCrewLauncher');
+}
+
+function isApprovedInstallPath(executablePath = process.execPath, localData = localAppData) {
+  return path.dirname(path.resolve(executablePath)).toLowerCase()
+    === expectedInstallRoot(localData).toLowerCase();
+}
+
 function emit(channel, payload) {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, payload);
 }
@@ -857,7 +866,7 @@ async function repair() {
       repair: true,
       allowIncompleteDistribution: qaMode
     });
-    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
     progress(
       qaMode ? 'QA 재검사 완료' : '복구 완료',
       100,
@@ -924,6 +933,19 @@ async function initializeMainApplication() {
     app.quit();
     return;
   }
+  if (app.isPackaged && !isApprovedInstallPath()) {
+    await dialog.showMessageBox({
+      type: 'warning',
+      title: '불꽃단 런처 설치 필요',
+      message: '불꽃단 런처는 공식 설치 프로그램으로 설치해야 합니다.',
+      detail: `보호된 설치 경로: ${expectedInstallRoot()}\nGitHub 릴리즈의 Setup EXE를 실행해 주세요.`,
+      buttons: ['확인'],
+      defaultId: 0,
+      noLink: true
+    });
+    app.quit();
+    return;
+  }
   await ensureDirectories();
   runtimeConfig = await loadRuntimeConfig(app.getAppPath(), paths.root);
   const catalogProfiles = await loadLaunchProfileCatalog();
@@ -953,7 +975,7 @@ async function initializeMainApplication() {
   ipcMain.handle('launcher:install-update', installLauncherUpdate);
   ipcMain.handle('launcher:repair', async () => {
     const qaMode = Boolean(runtimeConfig.qaBypassMicrosoftLogin);
-    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : 'Forge';
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
       title: qaMode ? 'QA 클라이언트 재검사' : '클라이언트 복구',

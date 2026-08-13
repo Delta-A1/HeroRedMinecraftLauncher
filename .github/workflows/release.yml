@@ -42,4 +42,4 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create $env:GITHUB_REF_NAME release/*.zip release/*.sha256 --generate-notes --verify-tag
+        run: gh release create $env:GITHUB_REF_NAME release/*.exe release/*.zip release/*.sha256 --generate-notes --verify-tag

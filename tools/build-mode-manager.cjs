@@ -29,6 +29,8 @@ async function verifyPackage(directory) {
   ];
   const missing = required.filter((entry) => !entries.has(entry));
   if (missing.length) throw new Error(`관리 도구 패키지 필수 파일 누락:\n${missing.join('\n')}`);
+  const forbidden = [...entries].filter((entry) => entry.endsWith('.pem') || entry.includes('admin-signing-key'));
+  if (forbidden.length) throw new Error(`관리 도구 패키지에 개인 키 후보가 포함되었습니다:\n${forbidden.join('\n')}`);
   await fs.access(path.join(directory, `${MANAGER_NAME}.exe`));
   return { asarFile, required: required.length };
 }

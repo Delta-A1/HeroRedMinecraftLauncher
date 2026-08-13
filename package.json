@@ -1,7 +1,7 @@
 {
   "name": "fire-crew-launcher",
   "productName": "불꽃단 런처",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Minecraft 26.2 도시 건축 모드 구성과 실시간 런처 피드를 지원하는 Fire Crew 독립형 Minecraft 런처",
   "main": "src/main.js",
   "author": "Fire Crew",
@@ -16,7 +16,8 @@
     "modes:sign": "node tools/sign-mode-list.cjs",
     "modes:pack": "node tools/build-mode-manager.cjs",
     "pack:win": "node tools/build-windows-package.cjs",
-    "release:win": "npm run pack:win && node tools/build-github-release.cjs"
+    "installer:win": "node tools/build-windows-installer.cjs",
+    "release:win": "npm run pack:win && npm run installer:win && node tools/build-github-release.cjs"
   },
   "dependencies": {
     "@azure/msal-node": "^5.4.2",
@@ -32,6 +33,7 @@
     "@xmcl/curseforge": "^2.2.0",
     "@xmcl/file-transfer": "2.0.3",
     "electron": "^43.2.0",
+    "electron-builder": "^26.0.12",
     "playwright": "^1.62.1"
   }
 }

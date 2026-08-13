@@ -157,6 +157,20 @@ async function deployPayload(stagingRoot, installRoot, onProgress) {
   return 'copy';
 }
 
+async function preserveInstallerFiles(backupRoot, installRoot) {
+  const entries = await fsp.readdir(backupRoot, { withFileTypes: true });
+  const installerFiles = entries.filter((entry) => (
+    entry.isFile() && /^Uninstall .+\.exe$/i.test(entry.name)
+  ));
+  for (const entry of installerFiles) {
+    await fsp.copyFile(
+      path.join(backupRoot, entry.name),
+      path.join(installRoot, entry.name)
+    );
+  }
+  return installerFiles.map((entry) => entry.name);
+}
+
 async function restartLauncher(executablePath, installRoot, helperRoot, spawnImpl = spawn) {
   const child = await spawnAndConfirm(executablePath, [
     `--cleanup-update-helper=${helperRoot}`
@@ -210,6 +224,10 @@ async function applyUpdateJob(rawJob, {
 
     onProgress(48, '새 버전을 설치하고 있습니다.');
     const deployment = await deployPayload(job.stagingRoot, job.installRoot, onProgress);
+    const preservedInstallerFiles = await preserveInstallerFiles(backupRoot, job.installRoot);
+    if (preservedInstallerFiles.length > 0) {
+      await appendLog(job.logFile, `Installer metadata preserved: ${preservedInstallerFiles.join(', ')}`);
+    }
     await appendLog(job.logFile, `새 버전 배치 완료 · ${deployment}`);
 
     onProgress(82, '설치 결과를 검증하고 있습니다.');
@@ -327,6 +345,7 @@ module.exports = {
   cleanupUpdateHelpers,
   confirmRestartStayedAlive,
   deployPayload,
+  preserveInstallerFiles,
   retry,
   runUpdateHelper,
   updateJobFileFromArgv,
