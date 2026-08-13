@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T19:42:12.776Z",
+    "generatedAt": "2026-08-13T19:45:18.269Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -13,7 +13,7 @@
         "ready": true,
         "server": {
           "name": "",
-          "address": "185.207.166.118",
+          "address": "185.207.166.118:19003",
           "host": "185.207.166.118",
           "port": 19003
         },
@@ -324,5 +324,5 @@
       }
     ]
   },
-  "signature": "WBPe39PYk/yI00I1Z9gVqkjtIBf38zFfq6zQRfH4WcdWYZDkqLtM5RvcVKAwLUfnFCWIOs/GordMhYnfoAzOAg=="
+  "signature": "pSVeoKkGVMOuyArqK3DBHJ9eMKjLeD933jeCQFcXa0Gp46ieZkk48bEaY24NCtD1HXmusw/SpERSTtjkMmegAQ=="
 }
