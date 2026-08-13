@@ -33,7 +33,9 @@ async function main() {
     '--prepackaged',
     buildDirectory,
     '--config',
-    configFile
+    configFile,
+    '--publish',
+    'never'
   ], {
     cwd: projectRoot,
     env: {

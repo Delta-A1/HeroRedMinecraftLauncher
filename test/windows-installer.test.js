@@ -38,6 +38,6 @@ test('GitHub 릴리즈는 설치 EXE와 체크섬을 게시한다', async () => 
   assert.match(workflow, /release\/\*\.sha256/);
   assert.match(releaseBuilder, /installerFile.*sha256/s);
   assert.match(installerBuilder, /--prepackaged/);
+  assert.match(installerBuilder, /--publish[\s\S]*never/);
   assert.match(installerBuilder, /electron-builder\.yml/);
 });
-
