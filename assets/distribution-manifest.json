@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T19:40:44.410Z",
+    "generatedAt": "2026-08-13T19:42:12.776Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -97,8 +97,8 @@
             "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/vmQp7ixA/fabric-api-0.157.0%2B26.2.jar",
             "size": 2533297,
             "hash": {
-              "algorithm": "sha1",
-              "value": "0deb9d110def35ebcaf5f15a9e6c8b8e85685319"
+              "algorithm": "sha256",
+              "value": "acb7dc90a0430519c49548074d3fbf6fd81d13063f08f0af344b2a6b08a42620"
             },
             "source": "Fabric API · [26.2] Fabric API 0.157.0+26.2 · Modrinth",
             "projectUrl": "https://modrinth.com/mod/fabric-api"
@@ -324,5 +324,5 @@
       }
     ]
   },
-  "signature": "TyhZsDBOBsdPcqu8lOa7mN9UN8FFY2GBMw3CFnSNkU+fwkG5Zi86eGQN4TTLJd+CfH/6WRV//yw1XCH7ZrLHCA=="
+  "signature": "WBPe39PYk/yI00I1Z9gVqkjtIBf38zFfq6zQRfH4WcdWYZDkqLtM5RvcVKAwLUfnFCWIOs/GordMhYnfoAzOAg=="
 }
