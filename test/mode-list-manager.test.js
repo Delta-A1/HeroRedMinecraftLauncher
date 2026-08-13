@@ -320,5 +320,9 @@ test('모드 목록 관리자는 서버 프로필 추가·선택·삭제와 로�
   assert.match(html, /<select id="minecraftVersion">/);
   assert.match(html, /<select id="loaderVersion">/);
   assert.match(html, /<option value="fabric">Fabric<\/option>/);
+  assert.match(html, /<select id="javaMajorVersion">/);
+  assert.match(html, /id="javaRuntimeTarget"[^>]*readonly/);
   assert.match(renderer, /fabric:\s*\[/);
+  assert.match(renderer, /major >= 26/);
+  assert.match(renderer, /javaRuntimeTargetForMajor/);
 });

@@ -83,6 +83,45 @@ function splitServerAddress(address, fallbackPort = 25565) {
   return { host: value, port: fallbackPort };
 }
 
+function normalizeJavaMajor(value) {
+  const major = Number(value) || 8;
+  if (major >= 25) return 25;
+  if (major >= 21) return 21;
+  if (major >= 17) return 17;
+  return 8;
+}
+
+function javaRuntimeTargetForMajor(value) {
+  const major = normalizeJavaMajor(value);
+  if (major >= 25) return 'java-runtime-epsilon';
+  if (major >= 21) return 'java-runtime-delta';
+  if (major >= 17) return 'java-runtime-gamma';
+  return 'jre-legacy';
+}
+
+function javaMajorForRuntimeTarget(value) {
+  return {
+    'jre-legacy': 8,
+    'java-runtime-gamma': 17,
+    'java-runtime-delta': 21,
+    'java-runtime-epsilon': 25
+  }[String(value || '').toLowerCase()] || 0;
+}
+
+function requiredJavaMajorForMinecraft(value) {
+  const [major = 0, minor = 0, patch = 0] = String(value || '').split('.').map(Number);
+  if (major >= 26) return major > 26 || minor >= 2 ? 25 : 21;
+  if (major > 1) return 21;
+  if (minor > 20 || (minor === 20 && patch >= 5)) return 21;
+  if (minor >= 18) return 17;
+  return 8;
+}
+
+function javaMajorFromVersionName(value) {
+  const match = String(value || '').trim().match(/^(\d+)(?:[.u-]|$)/i);
+  return match ? normalizeJavaMajor(Number(match[1])) : 0;
+}
+
 function createLaunchProfiles(config = {}, product = PRODUCT) {
   const entries = Array.isArray(config.profiles) && config.profiles.length
     ? config.profiles
@@ -120,6 +159,13 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
         minecraft.forgeVersionId = minecraft.versionId;
       }
     }
+    const requiredJavaMajor = requiredJavaMajorForMinecraft(minecraft.version);
+    const requestedJavaMajor = Number(entry.minecraft?.javaMajorVersion)
+      || javaMajorForRuntimeTarget(entry.minecraft?.javaRuntimeTarget)
+      || Number(minecraft.javaMajorVersion)
+      || requiredJavaMajor;
+    minecraft.javaMajorVersion = normalizeJavaMajor(Math.max(requestedJavaMajor, requiredJavaMajor));
+    minecraft.javaRuntimeTarget = javaRuntimeTargetForMajor(minecraft.javaMajorVersion);
     const pack = { ...product.pack, ...(entry.pack || {}) };
     return {
       id,
@@ -216,7 +262,12 @@ module.exports = {
   DEFAULT_RUNTIME_CONFIG,
   PRODUCT,
   getRuntimeConfigurationIssues,
+  javaMajorForRuntimeTarget,
+  javaMajorFromVersionName,
+  javaRuntimeTargetForMajor,
   loadRuntimeConfig,
+  normalizeJavaMajor,
   productForProfile,
-  readJson
+  readJson,
+  requiredJavaMajorForMinecraft
 };

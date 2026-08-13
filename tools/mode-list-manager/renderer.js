@@ -122,9 +122,38 @@ function renderArchives() {
 
 function javaMajorForMinecraft(version) {
   const [major, minor = 0, patch = 0] = String(version || '').split('.').map(Number);
+  if (major >= 26) return major > 26 || minor >= 2 ? 25 : 21;
   if (major > 1 || minor > 20 || (minor === 20 && patch >= 5)) return 21;
   if (minor >= 18) return 17;
   return 8;
+}
+
+function normalizeJavaMajor(value) {
+  const major = Number(value) || 8;
+  if (major >= 25) return 25;
+  if (major >= 21) return 21;
+  if (major >= 17) return 17;
+  return 8;
+}
+
+function javaRuntimeTargetForMajor(value) {
+  const major = normalizeJavaMajor(value);
+  if (major >= 25) return 'java-runtime-epsilon';
+  if (major >= 21) return 'java-runtime-delta';
+  if (major >= 17) return 'java-runtime-gamma';
+  return 'jre-legacy';
+}
+
+function syncJavaRuntimeTarget() {
+  const major = normalizeJavaMajor(document.querySelector(profileFields.javaMajorVersion).value);
+  document.querySelector(profileFields.javaMajorVersion).value = String(major);
+  document.querySelector(profileFields.javaRuntimeTarget).value = javaRuntimeTargetForMajor(major);
+}
+
+function updateJavaFieldsForMinecraft() {
+  const major = javaMajorForMinecraft(document.querySelector(profileFields.minecraftVersion).value);
+  document.querySelector(profileFields.javaMajorVersion).value = String(major);
+  syncJavaRuntimeTarget();
 }
 
 function javaRuntimeTargetForMinecraft(version) {
@@ -218,6 +247,10 @@ function saveActiveProfile() {
     host: addressMatch?.[1] || serverAddress,
     port: serverPort
   };
+  const javaMajorVersion = normalizeJavaMajor(Math.max(
+    Number(value('javaMajorVersion')) || 8,
+    javaMajorForMinecraft(minecraftVersion)
+  ));
   profile.minecraft = {
     ...(profile.minecraft || {}),
     version: minecraftVersion,
@@ -226,8 +259,8 @@ function saveActiveProfile() {
     forgeVersion: loader === 'forge' ? loaderVersion : '',
     forgeVersionId: versionId,
     versionId,
-    javaRuntimeTarget: value('javaRuntimeTarget'),
-    javaMajorVersion: Number(value('javaMajorVersion')) || (loader === 'vanilla' ? 8 : 25)
+    javaRuntimeTarget: javaMajorVersion >= 25 ? 'java-runtime-epsilon' : javaMajorVersion >= 21 ? 'java-runtime-delta' : javaMajorVersion >= 17 ? 'java-runtime-gamma' : 'jre-legacy',
+    javaMajorVersion
   };
   profile.pack = {
     ...(profile.pack || {}),
@@ -280,6 +313,12 @@ function loadActiveProfile() {
   (profile.files || []).forEach(addMode);
   renderArchives();
   updateLoaderFields();
+  const requiredJavaMajor = javaMajorForMinecraft(values.minecraftVersion);
+  document.querySelector(profileFields.javaMajorVersion).value = String(normalizeJavaMajor(Math.max(
+    Number(values.javaMajorVersion) || requiredJavaMajor,
+    requiredJavaMajor
+  )));
+  syncJavaRuntimeTarget();
 }
 
 function renderProfileOptions() {
@@ -331,8 +370,12 @@ document.querySelector('#removeProfileButton').addEventListener('click', () => {
   setStatus(`${removed.name || removed.id} 프로필을 목록에서 제거했습니다.`);
 });
 document.querySelector('#minecraftLoader').addEventListener('change', updateLoaderFields);
-document.querySelector('#minecraftVersion').addEventListener('change', updateLoaderFields);
+document.querySelector('#minecraftVersion').addEventListener('change', () => {
+  updateLoaderFields();
+  updateJavaFieldsForMinecraft();
+});
 document.querySelector('#loaderVersion').addEventListener('change', updateLoaderFields);
+document.querySelector('#javaMajorVersion').addEventListener('change', syncJavaRuntimeTarget);
 function renderCurseforgeKeyStatus(state = {}) {
   const label = document.querySelector('#curseforgeKeyStatus');
   label.textContent = state.valid ? 'API 키 확인됨' : state.configured ? 'API 키 거부됨 · 다시 저장 필요' : 'API 키 미설정';

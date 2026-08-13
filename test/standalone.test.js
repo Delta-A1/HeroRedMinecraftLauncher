@@ -16,8 +16,10 @@ const {
   createLaunchProfiles,
   PRODUCT,
   getRuntimeConfigurationIssues,
+  javaRuntimeTargetForMajor,
   loadRuntimeConfig,
-  productForProfile
+  productForProfile,
+  requiredJavaMajorForMinecraft
 } = require('../src/config');
 const { resolveInside, writeJsonAtomic } = require('../src/file-utils');
 const {
@@ -538,6 +540,31 @@ test('Fabric 서버 프로필은 Forge 기본값을 상속하지 않고 Fabric �
   assert.equal(profile.minecraft.forgeVersionId, '1.20.1-fabric0.16.14');
 });
 
+test('프로필 Java 버전과 Mojang 런타임 대상은 Minecraft 최소 요구 버전에 맞춰진다', () => {
+  const [fabric] = createLaunchProfiles({ profiles: [{
+    id: 'fabric-java-test',
+    minecraft: {
+      version: '1.20.1', loader: 'fabric', loaderVersion: '0.19.3',
+      javaMajorVersion: 8, javaRuntimeTarget: 'jre-legacy'
+    },
+    pack: { id: 'fabric-java-test-pack' }
+  }] }, PRODUCT);
+  assert.equal(fabric.minecraft.javaMajorVersion, 17);
+  assert.equal(fabric.minecraft.javaRuntimeTarget, 'java-runtime-gamma');
+  const [explicitJava25] = createLaunchProfiles({ profiles: [{
+    id: 'fabric-java-25',
+    minecraft: {
+      version: '1.20.1', loader: 'fabric', loaderVersion: '0.19.3',
+      javaMajorVersion: 25, javaRuntimeTarget: 'jre-legacy'
+    },
+    pack: { id: 'fabric-java-25-pack' }
+  }] }, PRODUCT);
+  assert.equal(explicitJava25.minecraft.javaMajorVersion, 25);
+  assert.equal(explicitJava25.minecraft.javaRuntimeTarget, 'java-runtime-epsilon');
+  assert.equal(requiredJavaMajorForMinecraft('26.2'), 25);
+  assert.equal(javaRuntimeTargetForMajor(25), 'java-runtime-epsilon');
+});
+
 test('Fabric 프로필 조회 후 재요청이 실패해도 검증한 최신 목록을 재사용한다', async (context) => {
   const root = await tempDirectory('fire-crew-fabric-manifest-fallback-');
   context.after(() => fs.rm(root, { recursive: true, force: true }));
@@ -815,6 +842,53 @@ test('Java 실행 파일만 남은 중단 설치는 완료 상태로 오인하�
     verified: true
   });
   assert.equal(await service.isRuntimeReady(), true);
+});
+
+test('프로필 Java 버전이 바뀌면 이전 런타임을 정리하고 변경된 버전으로 다시 설치한다', async (context) => {
+  const root = await tempDirectory('fire-crew-java-profile-change-');
+  context.after(() => fs.rm(root, { recursive: true, force: true }));
+  const runtimeRoot = path.join(root, 'runtime');
+  const java21Product = {
+    ...PRODUCT,
+    minecraft: {
+      ...PRODUCT.minecraft,
+      javaMajorVersion: 21,
+      javaRuntimeTarget: 'java-runtime-delta'
+    }
+  };
+  let installed = 0;
+  const service = new MinecraftService({
+    gameRoot: path.join(root, 'game'),
+    runtimeRoot,
+    baseStateFile: path.join(root, 'base.json'),
+    product: java21Product,
+    runtimeManifestFetcher: async ({ target }) => ({
+      target,
+      version: { name: '21.0.7' },
+      files: {}
+    }),
+    runtimeInstaller: async ({ destination }) => {
+      installed += 1;
+      await fs.mkdir(path.join(destination, 'bin'), { recursive: true });
+      await fs.writeFile(path.join(destination, 'bin', 'java.exe'), 'java-21');
+    }
+  });
+  await fs.mkdir(path.join(runtimeRoot, 'bin'), { recursive: true });
+  await fs.writeFile(path.join(runtimeRoot, 'bin', 'java.exe'), 'java-17');
+  await fs.writeFile(path.join(runtimeRoot, 'old-runtime-file'), 'remove-me');
+  await writeJsonAtomic(path.join(runtimeRoot, '.fire-crew-runtime.json'), {
+    target: 'java-runtime-gamma',
+    version: { name: '17.0.15' },
+    majorVersion: 17,
+    verified: true
+  });
+  await service.ensureRuntime();
+  assert.equal(installed, 1);
+  await assert.rejects(fs.access(path.join(runtimeRoot, 'old-runtime-file')));
+  assert.equal(await fs.readFile(service.javaExecutable, 'utf8'), 'java-21');
+  const state = JSON.parse(await fs.readFile(path.join(runtimeRoot, '.fire-crew-runtime.json'), 'utf8'));
+  assert.equal(state.majorVersion, 21);
+  assert.equal(state.target, 'java-runtime-delta');
 });
 
 test('Mojang Java 매니페스트를 undici 전용 옵션 없이 가져온다', async () => {

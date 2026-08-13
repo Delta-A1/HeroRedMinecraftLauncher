@@ -19,6 +19,7 @@ const {
   retryInstall
 } = require('./minecraft-download-policy');
 const { fetchMojangJavaRuntimeManifest } = require('./mojang-runtime-manifest');
+const { javaMajorForRuntimeTarget, javaMajorFromVersionName } = require('./config');
 
 function createMicrosoftLaunchIdentity(session) {
   const clientId = String(session?.clientId || '').trim();
@@ -121,6 +122,8 @@ class MinecraftService {
     this.runtimeStateFile = path.join(this.runtimeRoot, '.fire-crew-runtime.json');
     this.downloadDispatcher = options.downloadDispatcher
       || createMinecraftDownloadDispatcher();
+    this.runtimeManifestFetcher = options.runtimeManifestFetcher || fetchMojangJavaRuntimeManifest;
+    this.runtimeInstaller = options.runtimeInstaller || installJavaRuntimeFiles;
   }
 
   get javaExecutable() {
@@ -138,10 +141,14 @@ class MinecraftService {
 
   async isRuntimeReady() {
     const state = await readJson(this.runtimeStateFile, {});
+    const installedMajor = Number(state.majorVersion)
+      || javaMajorFromVersionName(state.version?.name || state.version)
+      || javaMajorForRuntimeTarget(state.target);
     return Boolean(
       await pathExists(this.javaExecutable)
       && state.verified === true
       && state.target === this.product.minecraft.javaRuntimeTarget
+      && installedMajor === this.product.minecraft.javaMajorVersion
     );
   }
 
@@ -201,11 +208,26 @@ class MinecraftService {
     if (!options.repair && await this.isRuntimeReady()) return this.javaExecutable;
     const javaLabel = `Java ${this.product.minecraft.javaMajorVersion}`;
     this.onProgress?.(`${javaLabel} 준비`, 2, 'Mojang 공식 런타임 확인 중');
-    const manifest = await fetchMojangJavaRuntimeManifest({
+    const previousState = await readJson(this.runtimeStateFile, {});
+    const previousMajor = Number(previousState.majorVersion)
+      || javaMajorFromVersionName(previousState.version?.name || previousState.version)
+      || javaMajorForRuntimeTarget(previousState.target);
+    if (previousState.verified === true && (
+      previousState.target !== this.product.minecraft.javaRuntimeTarget
+      || previousMajor !== this.product.minecraft.javaMajorVersion
+    )) {
+      await fs.rm(this.runtimeRoot, { recursive: true, force: true });
+      this.onLog?.(`Java 프로필 변경 감지: Java ${previousMajor || '?'}에서 Java ${this.product.minecraft.javaMajorVersion}(으)로 다시 설치합니다.`, 'warning');
+    }
+    const manifest = await this.runtimeManifestFetcher({
       target: this.product.minecraft.javaRuntimeTarget
     });
+    const downloadedMajor = javaMajorFromVersionName(manifest.version?.name || manifest.version);
+    if (downloadedMajor && downloadedMajor !== this.product.minecraft.javaMajorVersion) {
+      throw new Error(`Java 런타임 버전 불일치: 프로필 Java ${this.product.minecraft.javaMajorVersion}, Mojang Java ${downloadedMajor}`);
+    }
     await ensureDirectory(this.runtimeRoot);
-    await installJavaRuntimeFiles({
+    await this.runtimeInstaller({
       destination: this.runtimeRoot,
       manifest,
       concurrency: 4,
@@ -223,6 +245,7 @@ class MinecraftService {
     await writeJsonAtomic(this.runtimeStateFile, {
       target: this.product.minecraft.javaRuntimeTarget,
       version: manifest.version,
+      majorVersion: this.product.minecraft.javaMajorVersion,
       verified: true,
       verifiedAt: new Date().toISOString()
     });
