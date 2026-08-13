@@ -147,6 +147,7 @@ class PatchService {
     this.manifestCacheFile = options.manifestCacheFile;
     this.manifestUrl = options.manifestUrl;
     this.localManifestPath = options.localManifestPath;
+    this.fallbackManifest = options.fallbackManifest || null;
     this.publicKey = options.publicKey;
     this.allowUnsignedLocalManifest = options.allowUnsignedLocalManifest === true;
     this.product = options.product;
@@ -181,11 +182,14 @@ class PatchService {
           clearTimeout(timeout);
         }
       } catch (error) {
-        envelope = this.manifestCacheFile ? await readJson(this.manifestCacheFile, null) : null;
+        envelope = this.fallbackManifest;
+        if (!envelope && this.manifestCacheFile) {
+          envelope = await readJson(this.manifestCacheFile, null);
+        }
         if (!envelope && this.localManifestPath) {
           envelope = await readJson(this.localManifestPath, null);
-          remote = false;
         }
+        remote = false;
         if (!envelope) throw error;
         this.onLog?.(`패치 서버 연결 실패, 마지막 검증 정보를 사용합니다: ${error.message}`, 'warning');
       }

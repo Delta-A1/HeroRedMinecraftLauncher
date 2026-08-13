@@ -69,6 +69,7 @@ let operationInProgress = false;
 let gameRunning = false;
 let runtimeConfig;
 let launchProfiles = [];
+let catalogManifestEnvelope = null;
 let activeProfile;
 let activeProduct = PRODUCT;
 let profilePaths = paths;
@@ -233,6 +234,7 @@ function pathsForProfile(profile) {
 
 async function loadLaunchProfileCatalog() {
   const localEnvelope = await readJson(runtimeConfig.bundledManifestPath, null);
+  catalogManifestEnvelope = localEnvelope;
   let localProfiles = [];
   if (localEnvelope) {
     const localPayload = verifyManifestEnvelope(
@@ -255,7 +257,10 @@ async function loadLaunchProfileCatalog() {
         if (!response.ok) throw new Error(`프로필 목록 조회 실패 (HTTP ${response.status})`);
         const envelope = await response.json();
         const payload = verifyManifestEnvelope(envelope, runtimeConfig.distributionPublicKey, false);
-        if (Array.isArray(payload.profiles) && payload.profiles.length) return payload.profiles;
+        if (Array.isArray(payload.profiles) && payload.profiles.length) {
+          catalogManifestEnvelope = envelope;
+          return payload.profiles;
+        }
       } finally {
         clearTimeout(timeout);
       }
@@ -287,6 +292,7 @@ function createProfileServices() {
     manifestCacheFile: profilePaths.patchManifestCache,
     manifestUrl: activeProfile.distributionManifestUrl,
     localManifestPath: activeProfile.bundledManifestPath,
+    fallbackManifest: catalogManifestEnvelope,
     publicKey: activeProfile.distributionPublicKey,
     allowUnsignedLocalManifest: activeProfile.allowUnsignedLocalManifest,
     product: activeProduct,

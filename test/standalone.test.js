@@ -538,11 +538,53 @@ test('Fabric 서버 프로필은 Forge 기본값을 상속하지 않고 Fabric �
   assert.equal(profile.minecraft.forgeVersionId, '1.20.1-fabric0.16.14');
 });
 
+test('Fabric 프로필 조회 후 재요청이 실패해도 검증한 최신 목록을 재사용한다', async (context) => {
+  const root = await tempDirectory('fire-crew-fabric-manifest-fallback-');
+  context.after(() => fs.rm(root, { recursive: true, force: true }));
+  const originalFetch = global.fetch;
+  global.fetch = async () => { throw new Error('temporary offline'); };
+  context.after(() => { global.fetch = originalFetch; });
+  const [profile] = createLaunchProfiles({ profiles: [{
+    id: 'fabric-server',
+    minecraft: {
+      version: '1.20.1', loader: 'fabric', loaderVersion: '0.19.3',
+      javaRuntimeTarget: 'java-runtime-gamma', javaMajorVersion: 17
+    },
+    pack: { id: 'fabric-server-pack', name: 'Fabric Pack', version: 'fabric-r1' }
+  }] }, PRODUCT);
+  const fallbackManifest = {
+    schemaVersion: 2,
+    ready: true,
+    version: 'catalog-r1',
+    profiles: [{ ...profile, version: 'fabric-r1', ready: true, files: [], archives: [], remove: [] }]
+  };
+  const service = new PatchService({
+    gameRoot: path.join(root, 'game'),
+    cacheRoot: path.join(root, 'cache'),
+    stateFile: path.join(root, 'state.json'),
+    manifestCacheFile: path.join(root, 'manifest-cache.json'),
+    manifestUrl: 'https://example.com/distribution-manifest.json',
+    localManifestPath: path.join(__dirname, '..', 'assets', 'distribution-manifest.json'),
+    fallbackManifest,
+    allowUnsignedLocalManifest: true,
+    product: productForProfile(profile, PRODUCT)
+  });
+  const result = await service.getStatus();
+  assert.equal(result.configured, true);
+  assert.equal(result.manifest.profile.id, 'fabric-server-pack');
+  assert.equal(result.manifest.profile.loader, 'fabric');
+  assert.equal(result.manifest.profile.loaderVersion, '0.19.3');
+});
+
 test('런처 서비스가 Fabric 설치와 라이브러리 준비 분기를 제공한다', async () => {
-  const source = await fs.readFile(path.join(__dirname, '..', 'src', 'minecraft-service.js'), 'utf8');
+  const [source, mainSource] = await Promise.all([
+    fs.readFile(path.join(__dirname, '..', 'src', 'minecraft-service.js'), 'utf8'),
+    fs.readFile(path.join(__dirname, '..', 'src', 'main.js'), 'utf8')
+  ]);
   assert.match(source, /installFabric\(\{/);
   assert.match(source, /loader === 'fabric'/);
   assert.match(source, /'Fabric 라이브러리 확인'/);
+  assert.match(mainSource, /fallbackManifest:\s*catalogManifestEnvelope/);
 });
 
 test('통합 목록에서 선택한 1.12.2 바닐라 프로필만 적용한다', async (context) => {
