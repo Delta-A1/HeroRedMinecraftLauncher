@@ -24,6 +24,7 @@ const {
   verifyManifestEnvelope
 } = require('./patch-service');
 const { upsertServer } = require('./server-list');
+const { listUnusedProfileDirectories, removeUnusedProfileDirectories } = require('./profile-storage');
 const { queryMinecraftServer } = require('./server-status');
 const { SkinService } = require('./skin-service');
 const { LauncherUpdateService } = require('./launcher-update-service');
@@ -566,6 +567,21 @@ async function getState() {
   };
 }
 
+async function cleanupUnusedProfiles() {
+  if (operationInProgress || gameRunning) throw new Error('다른 작업이 진행 중에는 프로필을 정리할 수 없습니다.');
+  const candidates = await listUnusedProfileDirectories(paths.root, launchProfiles, activeProfile.id);
+  if (!candidates.length) return { removed: [], message: '사용되지 않는 프로필이 없습니다.' };
+  const result = await dialog.showMessageBox(mainWindow, {
+    type: 'warning', title: '사용되지 않는 프로필 정리',
+    message: `${candidates.length}개의 사용되지 않는 프로필 파일을 삭제할까요?`,
+    detail: candidates.map((candidate) => candidate.id).join('\n'),
+    buttons: ['취소', '삭제'], defaultId: 0, cancelId: 0, noLink: true
+  });
+  if (result.response !== 1) return { removed: [], cancelled: true };
+  const removed = await removeUnusedProfileDirectories(paths.root, launchProfiles, activeProfile.id);
+  return { removed: removed.map((candidate) => candidate.id) };
+}
+
 async function checkLauncherUpdate() {
   await launcherUpdateService.check();
   return getState();
@@ -979,6 +995,7 @@ async function initializeMainApplication() {
   ipcMain.handle('launcher:check-updates', checkLauncherUpdate);
   ipcMain.handle('launcher:check-mode-updates', () => syncModeUpdates());
   ipcMain.handle('launcher:install-update', installLauncherUpdate);
+  ipcMain.handle('launcher:cleanup-unused-profiles', cleanupUnusedProfiles);
   ipcMain.handle('launcher:repair', async () => {
     const qaMode = Boolean(runtimeConfig.qaBypassMicrosoftLogin);
     const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';

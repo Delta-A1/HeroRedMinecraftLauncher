@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('fireCrew', {
   install: () => ipcRenderer.invoke('launcher:install'),
   launch: () => ipcRenderer.invoke('launcher:launch'),
   repair: () => ipcRenderer.invoke('launcher:repair'),
+  cleanupUnusedProfiles: () => ipcRenderer.invoke('launcher:cleanup-unused-profiles'),
   setMemory: (value) => ipcRenderer.invoke('launcher:set-memory', value),
   openFolder: () => ipcRenderer.invoke('launcher:open-folder'),
   openReport: () => ipcRenderer.invoke('launcher:open-report'),

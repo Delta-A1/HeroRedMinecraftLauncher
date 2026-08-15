@@ -132,7 +132,8 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
     while (usedIds.has(id)) id = `${id}-${index + 1}`;
     usedIds.add(id);
     const address = String(entry.server?.address || product.server.address).trim();
-    const parsedServer = splitServerAddress(address, Number(entry.server?.port) || product.server.port);
+    // address is canonical; legacy host/port fields may be stale.
+    const parsedServer = splitServerAddress(address, product.server.port);
     const minecraft = { ...product.minecraft, ...(entry.minecraft || {}) };
     const explicitVersionId = String(entry.minecraft?.versionId || entry.minecraft?.forgeVersionId || '');
     minecraft.loader = String(minecraft.loader || (minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
@@ -175,8 +176,8 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
         ...product.server,
         ...(entry.server || {}),
         address,
-        host: String(entry.server?.host || parsedServer.host).trim(),
-        port: Number(entry.server?.port) || parsedServer.port
+        host: parsedServer.host,
+        port: parsedServer.port
       },
       minecraft,
       pack,

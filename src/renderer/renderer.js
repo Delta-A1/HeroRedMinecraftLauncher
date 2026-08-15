@@ -12,6 +12,7 @@ const elements = {
   primary: document.querySelector('#primaryButton'),
   primaryLabel: document.querySelector('.primary-label'),
   repair: document.querySelector('#repairButton'),
+  cleanupProfiles: document.querySelector('#cleanupProfilesButton'),
   folder: document.querySelector('#folderButton'),
   report: document.querySelector('#reportButton'),
   memory: document.querySelector('#memorySelect'),
@@ -687,6 +688,18 @@ elements.settingsOpen.addEventListener('click', (event) => {
   setSettingsOpen(elements.settings.getAttribute('aria-hidden') === 'true');
 });
 elements.settingsClose.addEventListener('click', () => setSettingsOpen(false));
+elements.cleanupProfiles.addEventListener('click', async () => {
+  if (busy) return;
+  elements.cleanupProfiles.disabled = true;
+  try {
+    const result = await api.cleanupUnusedProfiles();
+    elements.progressText.textContent = result.cancelled
+      ? '프로필 정리를 취소했습니다.'
+      : result.removed?.length ? `${result.removed.length}개의 사용되지 않는 프로필을 삭제했습니다.` : result.message;
+  } catch (error) {
+    elements.progressText.textContent = `프로필 정리 실패: ${error.message}`;
+  } finally { elements.cleanupProfiles.disabled = false; }
+});
 elements.settings.addEventListener('click', (event) => event.stopPropagation());
 elements.authClose.addEventListener('click', () => setAuthOpen(false));
 document.addEventListener('click', () => setSettingsOpen(false));
