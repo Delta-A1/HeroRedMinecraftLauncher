@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-13T19:45:18.269Z",
+    "generatedAt": "2026-08-25T10:59:54.872Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -19,11 +19,11 @@
         },
         "minecraft": {
           "version": "26.2",
-          "loader": "fabric",
-          "loaderVersion": "0.19.3",
+          "loader": "vanilla",
+          "loaderVersion": "",
           "forgeVersion": "",
-          "forgeVersionId": "26.2-fabric0.19.3",
-          "versionId": "26.2-fabric0.19.3",
+          "forgeVersionId": "26.2",
+          "versionId": "26.2",
           "javaRuntimeTarget": "java-runtime-epsilon",
           "javaMajorVersion": 25
         },
@@ -45,8 +45,7 @@
               "algorithm": "sha1",
               "value": "a320d713c60bb34d676c97aaadd8256acb9416da"
             },
-            "source": "Chat Heads · 1.2.8 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/chat-heads"
+            "source": "Chat Heads · 1.2.8 · Modrinth"
           },
           {
             "path": "mods/easy_npc_bundle-fabric-26.2-7.0.0.jar",
@@ -56,8 +55,7 @@
               "algorithm": "sha1",
               "value": "486d82cef74682834cc7e27d426b5568ba77d31d"
             },
-            "source": "Easy NPC · Easy NPC (Bundle) 7.0.0 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/CgGEe1h3"
+            "source": "Easy NPC · Easy NPC (Bundle) 7.0.0 · Modrinth"
           },
           {
             "path": "mods/easy_npc_config_ui-fabric-26.2-7.0.0.jar",
@@ -67,8 +65,7 @@
               "algorithm": "sha1",
               "value": "8e525b4e2cc520d4cd901871b4e33250e0ebdc07"
             },
-            "source": "Easy NPC: Config UI · Easy NPC Config UI 7.0.0 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/uTGjf7vA"
+            "source": "Easy NPC: Config UI · Easy NPC Config UI 7.0.0 · Modrinth"
           },
           {
             "path": "mods/easy_npc-fabric-26.2-7.0.0.jar",
@@ -78,8 +75,7 @@
               "algorithm": "sha1",
               "value": "49793b8b11a5196d0d68f32ae1241a732ebf60f2"
             },
-            "source": "Easy NPC: Core · Easy NPC 7.0.0 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/Epm6R3P2"
+            "source": "Easy NPC: Core · Easy NPC 7.0.0 · Modrinth"
           },
           {
             "path": "mods/Essential_1-4-1-1_fabric_26-2.jar",
@@ -89,8 +85,7 @@
               "algorithm": "sha1",
               "value": "5a26631c7eca58b2e5a852002bfa8d1b01b1f10c"
             },
-            "source": "Essential Mod · Essential 1.4.1.1 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/essential"
+            "source": "Essential Mod · Essential 1.4.1.1 · Modrinth"
           },
           {
             "path": "mods/fabric-api-0.157.0+26.2.jar",
@@ -100,8 +95,7 @@
               "algorithm": "sha256",
               "value": "acb7dc90a0430519c49548074d3fbf6fd81d13063f08f0af344b2a6b08a42620"
             },
-            "source": "Fabric API · [26.2] Fabric API 0.157.0+26.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/fabric-api"
+            "source": "Fabric API · [26.2] Fabric API 0.157.0+26.2 · Modrinth"
           },
           {
             "path": "mods/fusion-1.3.12-fabric-mc26.2.jar",
@@ -111,8 +105,7 @@
               "algorithm": "sha1",
               "value": "2853b3fe004c0e8c411b626a6df1673fb4499a93"
             },
-            "source": "Fusion (Connected Textures) · Fusion 1.3.12 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/p19vrgc2"
+            "source": "Fusion (Connected Textures) · Fusion 1.3.12 · Modrinth"
           },
           {
             "path": "mods/mcw-fences-1.2.1-mc26.2fabric.jar",
@@ -122,8 +115,7 @@
               "algorithm": "sha1",
               "value": "9b9a41ef67ea7f9f198b4d9f398d11282e13fe23"
             },
-            "source": "Macaw's Fences and Walls · Macaw's Fences and Walls 1.2.1 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/GmwLse2I"
+            "source": "Macaw's Fences and Walls · Macaw's Fences and Walls 1.2.1 · Modrinth"
           },
           {
             "path": "mods/mcw-furniture-3.4.2-mc26.2fabric.jar",
@@ -133,8 +125,7 @@
               "algorithm": "sha1",
               "value": "cac64597724b6f9bec0e37564c25dc32f91d5e57"
             },
-            "source": "Macaw's Furniture · Macaw's Furniture 3.4.1 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/dtWC90iB"
+            "source": "Macaw's Furniture · Macaw's Furniture 3.4.1 · Modrinth"
           },
           {
             "path": "mods/mcw-lights-1.1.5-mc26.2fabric.jar",
@@ -144,8 +135,7 @@
               "algorithm": "sha1",
               "value": "642fe2b0496343060fe96165a4d70550eb6e26c9"
             },
-            "source": "Macaw's Lights and Lamps · Macaw's Lights and Lamps 1.1.5 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/w4an97C2"
+            "source": "Macaw's Lights and Lamps · Macaw's Lights and Lamps 1.1.5 · Modrinth"
           },
           {
             "path": "mods/mcw-paths-1.1.1-mc26.2fabric.jar",
@@ -155,8 +145,7 @@
               "algorithm": "sha1",
               "value": "5548dd26d4cd9dcc095a3576e8fc09db73959982"
             },
-            "source": "Macaw's Paths and Pavings · Macaw's Paths and Pavings 1.1.1 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/VRLhWB91"
+            "source": "Macaw's Paths and Pavings · Macaw's Paths and Pavings 1.1.1 · Modrinth"
           },
           {
             "path": "mods/mcw-roofs-2.3.3-mc26.2fabric.jar",
@@ -166,8 +155,7 @@
               "algorithm": "sha1",
               "value": "e129f369189494bef02ae27ecd85f025ead710d9"
             },
-            "source": "Macaw's Roofs · Macaw's Roofs 2.3.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/B8jaH3P1"
+            "source": "Macaw's Roofs · Macaw's Roofs 2.3.2 · Modrinth"
           },
           {
             "path": "mods/mcw-windows-2.4.2-mc26.2fabric.jar",
@@ -177,8 +165,7 @@
               "algorithm": "sha1",
               "value": "2735fa2b14057456897084e055caca77a6ee8187"
             },
-            "source": "Macaw's Windows · Macaw's Windows 2.4.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/C7I0BCni"
+            "source": "Macaw's Windows · Macaw's Windows 2.4.2 · Modrinth"
           },
           {
             "path": "mods/MouseTweaks-fabric-mc26.2-2.31.jar",
@@ -188,8 +175,7 @@
               "algorithm": "sha1",
               "value": "ad5b7e4ad6dc734152d41f05902b65aedb448d64"
             },
-            "source": "Mouse Tweaks · [26.2 Fabric] Mouse Tweaks 2.31 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/aC3cM3Vq"
+            "source": "Mouse Tweaks · [26.2 Fabric] Mouse Tweaks 2.31 · Modrinth"
           },
           {
             "path": "mods/Ping-Wheel-1.12.1-fabric-26.2.jar",
@@ -199,8 +185,7 @@
               "algorithm": "sha1",
               "value": "cb74bc08f38daf49ee283fdd998ce935ee97c192"
             },
-            "source": "Ping Wheel · v1.12.1 for Fabric 26.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/ping-wheel"
+            "source": "Ping Wheel · v1.12.1 for Fabric 26.2 · Modrinth"
           },
           {
             "path": "mods/rechiseled-1.2.5-fabric-mc26.2.jar",
@@ -210,8 +195,7 @@
               "algorithm": "sha1",
               "value": "4b602848e842e510a7b11bacecace434f6616d0d"
             },
-            "source": "Rechiseled · Rechiseled 1.2.5 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/B0g2vT6l"
+            "source": "Rechiseled · Rechiseled 1.2.5 · Modrinth"
           },
           {
             "path": "mods/Saros-Road-Blocks-Fabric-26.2-5.11.jar",
@@ -221,8 +205,7 @@
               "algorithm": "sha1",
               "value": "d696240bd0035d17d99104709587805e700b978e"
             },
-            "source": "Saro´s Road Blocks · Road Blocks 5.11 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/NnMIY8We"
+            "source": "Saro´s Road Blocks · Road Blocks 5.11 · Modrinth"
           },
           {
             "path": "mods/Saros-Road-Signs-Fabric-26.2-4.17.jar",
@@ -232,8 +215,7 @@
               "algorithm": "sha1",
               "value": "3f1e258784a1c2f13feb9ca503ea45830a50f649"
             },
-            "source": "Saro´s Road Signs · Road Signs 4.17 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/Ba3uA4qP"
+            "source": "Saro´s Road Signs · Road Signs 4.17 · Modrinth"
           },
           {
             "path": "mods/SkniroFurniture-1.5.2-26.2-Fabric.jar",
@@ -243,8 +225,7 @@
               "algorithm": "sha1",
               "value": "e9af4973997d86f8360eb2f3ec7ec9d15cfaf4f4"
             },
-            "source": "Skniro's Furniture · Skniro's Furniture 1.5.2-26.2-Fabric · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/pezpt98N"
+            "source": "Skniro's Furniture · Skniro's Furniture 1.5.2-26.2-Fabric · Modrinth"
           },
           {
             "path": "mods/supermartijn642configlib-1.1.8-fabric-mc26.2.jar",
@@ -254,8 +235,7 @@
               "algorithm": "sha1",
               "value": "56c3d9cb1c5b7d6a1f6eef525ef0487e79503ada"
             },
-            "source": "SuperMartijn642's Config Lib · SuperMartijn642's Config Library 1.1.8 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/LN9BxssP"
+            "source": "SuperMartijn642's Config Lib · SuperMartijn642's Config Library 1.1.8 · Modrinth"
           },
           {
             "path": "mods/supermartijn642corelib-1.1.24-fabric-mc26.2.jar",
@@ -265,8 +245,7 @@
               "algorithm": "sha1",
               "value": "df317e3285eea75b4d40c2df909110d6127588cd"
             },
-            "source": "SuperMartijn642's Core Lib · SuperMartijn642's Core Lib 1.1.24 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/rOUBggPv"
+            "source": "SuperMartijn642's Core Lib · SuperMartijn642's Core Lib 1.1.24 · Modrinth"
           },
           {
             "path": "mods/vmp-fabric-mc26.2-0.2.0+beta.7.236-all.jar",
@@ -276,8 +255,7 @@
               "algorithm": "sha1",
               "value": "dcf1295db267f7b519ecdd7d1c9499910c7e6fc0"
             },
-            "source": "Very Many Players (Fabric) · 0.2.0+beta.7.236 devbuild for 26.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/vmp-fabric"
+            "source": "Very Many Players (Fabric) · 0.2.0+beta.7.236 devbuild for 26.2 · Modrinth"
           },
           {
             "path": "mods/voicechat-fabric-2.6.22+26.2.jar",
@@ -287,8 +265,7 @@
               "algorithm": "sha1",
               "value": "f36fca7d4d091421e55f2a22d4e3cd0f462082b9"
             },
-            "source": "Simple Voice Chat · Simple Voice Chat 2.6.22+26.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/9eGKb6K1"
+            "source": "Simple Voice Chat · Simple Voice Chat 2.6.22+26.2 · Modrinth"
           },
           {
             "path": "mods/xaerominimap-fabric-26.2-26.4.2.jar",
@@ -298,8 +275,7 @@
               "algorithm": "sha1",
               "value": "2c1f7688658101cc7e76b8469016bbebcf176a58"
             },
-            "source": "Xaero's Minimap · Xaero's Minimap 26.4.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/1bokaNcj"
+            "source": "Xaero's Minimap · Xaero's Minimap 26.4.2 · Modrinth"
           },
           {
             "path": "mods/xaeroworldmap-fabric-26.2-1.44.2.jar",
@@ -309,8 +285,7 @@
               "algorithm": "sha1",
               "value": "c003a5a6bcad9b876bf356d99fbaee664d72d1a4"
             },
-            "source": "Xaero's World Map · Xaero's World Map 1.44.2 · Modrinth",
-            "projectUrl": "https://modrinth.com/mod/NcUtCpym"
+            "source": "Xaero's World Map · Xaero's World Map 1.44.2 · Modrinth"
           }
         ],
         "remove": [
@@ -321,8 +296,53 @@
           "mods/connectedglass-1.1.14-forge-mc26.2.jar",
           "mods/ConnectedGlass-1.1.14-forge-mc26.2.jar"
         ]
+      },
+      {
+        "id": "profile-2",
+        "name": "신들의 전쟁",
+        "description": "신들의 전쟁",
+        "version": "profile-2-r1",
+        "ready": true,
+        "server": {
+          "name": "서버 2",
+          "address": "185.207.166.118:19003",
+          "host": "185.207.166.118",
+          "port": 19003
+        },
+        "minecraft": {
+          "version": "26.1.2",
+          "loader": "forge",
+          "loaderVersion": "64.1.0",
+          "forgeVersion": "64.1.0",
+          "forgeVersionId": "26.1.2",
+          "versionId": "26.1.2",
+          "javaRuntimeTarget": "jre-legacy",
+          "javaMajorVersion": 25
+        },
+        "pack": {
+          "id": "profile-2-vanilla",
+          "name": "신들의 전쟁",
+          "version": "profile-2-r1",
+          "fileId": 0,
+          "koreanPackName": "",
+          "koreanPackVersion": "none"
+        },
+        "archives": [],
+        "files": [
+          {
+            "path": "mods/voicechat-forge-2.6.22+26.1.2.jar",
+            "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/b7lNKIlY/voicechat-forge-2.6.22%2B26.1.2.jar",
+            "size": 4912847,
+            "hash": {
+              "algorithm": "sha1",
+              "value": "d6c273ba387440c06176daa80dbf0262c4e07e82"
+            },
+            "source": "Simple Voice Chat · Simple Voice Chat 2.6.22+26.1.2 · Modrinth"
+          }
+        ],
+        "remove": []
       }
     ]
   },
-  "signature": "pSVeoKkGVMOuyArqK3DBHJ9eMKjLeD933jeCQFcXa0Gp46ieZkk48bEaY24NCtD1HXmusw/SpERSTtjkMmegAQ=="
+  "signature": "zzW5IH7H/plc9vWYdhOIhHJsOUwE0QykSaVY6rAb+CeFA6sKTPUHpjcrnLkftrfXm7i0FY05wGivsfSzcF8QBQ=="
 }
