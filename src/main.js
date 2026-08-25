@@ -179,6 +179,9 @@ function describeAuthenticationError(error) {
   if (error?.code === 'MINECRAFT_OWNERSHIP_REQUIRED' || /소유권/i.test(raw)) {
     return '로그인한 계정에서 Minecraft: Java Edition 소유권을 확인하지 못했습니다.';
   }
+  if (error?.code === 'MINECRAFT_PROFILE_REQUIRED') {
+    return 'Minecraft: Java Edition 프로필을 확인하지 못했습니다. Minecraft 프로필 이름을 먼저 설정해 주세요.';
+  }
   return `Microsoft 로그인을 완료하지 못했습니다.${error?.code ? ` (${error.code})` : ''}`;
 }
 

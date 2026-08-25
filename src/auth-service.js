@@ -10,6 +10,10 @@ const { MicrosoftAuthenticator, MojangClient } = require('@xmcl/user');
 const { ensureDirectory, readJson, writeJsonAtomic } = require('./file-utils');
 
 const MICROSOFT_SCOPES = Object.freeze(['XboxLive.signin', 'offline_access']);
+const TERMINAL_MINECRAFT_ACCOUNT_ERRORS = new Set([
+  'MINECRAFT_OWNERSHIP_REQUIRED',
+  'MINECRAFT_PROFILE_REQUIRED'
+]);
 
 function getXboxClaim(response) {
   return response?.DisplayClaims?.xui?.[0] || {};
@@ -41,13 +45,29 @@ async function exchangeMicrosoftTokenForMinecraft(accessToken, authenticator, mo
     error.code = 'MINECRAFT_XUID_REQUIRED';
     throw error;
   }
-  const [ownership, profile] = await Promise.all([
-    mojang.checkGameOwnership(minecraftAuth.access_token),
-    mojang.getProfile(minecraftAuth.access_token)
-  ]);
+  // Check ownership first. A non-owner's profile request can fail faster than the
+  // entitlement request, which used to hide the useful terminal error and leave
+  // the cached Microsoft account eligible for another automatic attempt.
+  const ownership = await mojang.checkGameOwnership(minecraftAuth.access_token);
   if (!Array.isArray(ownership?.items) || !ownership.items.length) {
     const error = new Error('이 Microsoft 계정에서 Minecraft: Java Edition 소유권을 확인하지 못했습니다.');
     error.code = 'MINECRAFT_OWNERSHIP_REQUIRED';
+    throw error;
+  }
+  let profile;
+  try {
+    profile = await mojang.getProfile(minecraftAuth.access_token);
+  } catch (error) {
+    if (error?.name !== 'ProfileNotFoundError' && error?.error !== 'NOT_FOUND' && error?.errorType !== 'NOT_FOUND') {
+      throw error;
+    }
+    const profileError = new Error('Minecraft: Java Edition 프로필을 확인하지 못했습니다. Minecraft 프로필 이름을 먼저 설정해 주세요.');
+    profileError.code = 'MINECRAFT_PROFILE_REQUIRED';
+    throw profileError;
+  }
+  if (typeof profile?.id !== 'string' || !profile.id || typeof profile?.name !== 'string' || !profile.name) {
+    const error = new Error('Minecraft: Java Edition 프로필을 확인하지 못했습니다. Minecraft 프로필 이름을 먼저 설정해 주세요.');
+    error.code = 'MINECRAFT_PROFILE_REQUIRED';
     throw error;
   }
   const activeSkin = Array.isArray(profile?.skins)
@@ -97,6 +117,10 @@ class AuthService {
     this.openExternal = options.openExternal;
     this.onDeviceCode = options.onDeviceCode;
     this.onMicrosoftAuthenticated = options.onMicrosoftAuthenticated;
+    this.createAuthenticator = options.createAuthenticator
+      || (() => new MicrosoftAuthenticator({ fetch }));
+    this.createMojangClient = options.createMojangClient
+      || (() => new MojangClient({ fetch }));
     this.pca = null;
     this.initialized = false;
   }
@@ -225,13 +249,24 @@ class AuthService {
 
   async acquireMinecraftSession(options = {}) {
     const msResult = await this.acquireMicrosoftToken(Boolean(options.interactive));
-    const authenticator = new MicrosoftAuthenticator({ fetch });
-    const mojang = new MojangClient({ fetch });
-    const session = await exchangeMicrosoftTokenForMinecraft(
-      msResult.accessToken,
-      authenticator,
-      mojang
-    );
+    const authenticator = this.createAuthenticator();
+    const mojang = this.createMojangClient();
+    let session;
+    try {
+      session = await exchangeMicrosoftTokenForMinecraft(
+        msResult.accessToken,
+        authenticator,
+        mojang
+      );
+    } catch (error) {
+      if (TERMINAL_MINECRAFT_ACCOUNT_ERRORS.has(error?.code)) {
+        // Do not keep a partial Microsoft-only login. Otherwise startup recovery
+        // retries the same account on every launch and an interactive login also
+        // silently reuses the account that cannot produce a Minecraft session.
+        await this.clearCachedCredentials().catch(() => {});
+      }
+      throw error;
+    }
     await writeJsonAtomic(this.profileFile, {
       id: session.profile.id,
       name: session.profile.name,
@@ -253,6 +288,11 @@ class AuthService {
   }
 
   async logout() {
+    await this.clearCachedCredentials();
+    return this.getStatus();
+  }
+
+  async clearCachedCredentials() {
     await this.initialize();
     if (this.pca) {
       const accounts = await this.getAccounts();
@@ -262,7 +302,6 @@ class AuthService {
     }
     await fs.rm(this.cacheFile, { force: true });
     await fs.rm(this.profileFile, { force: true });
-    return this.getStatus();
   }
 }
 

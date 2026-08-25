@@ -362,6 +362,81 @@ test('Minecraft XSTS에 XUID가 없으면 Xbox Live XSTS에서 보완한다', as
   ]);
 });
 
+test('Minecraft 미소유 계정은 프로필 조회 없이 영구 오류로 종료한다', async () => {
+  let profileRequests = 0;
+  const authenticator = {
+    authenticateXboxLive: async () => ({ Token: 'xbl-token' }),
+    authorizeXboxLive: async () => ({
+      Token: 'minecraft-xsts-token',
+      DisplayClaims: { xui: [{ uhs: 'user-hash', xid: '2533274799999999' }] }
+    }),
+    loginMinecraftWithXBox: async () => ({
+      access_token: 'minecraft-access-token',
+      expires_in: 3600
+    })
+  };
+  const mojang = {
+    checkGameOwnership: async () => ({ items: [] }),
+    getProfile: async () => {
+      profileRequests += 1;
+      throw new Error('프로필을 조회하면 안 됩니다.');
+    }
+  };
+
+  await assert.rejects(
+    () => exchangeMicrosoftTokenForMinecraft('microsoft-token', authenticator, mojang),
+    (error) => error.code === 'MINECRAFT_OWNERSHIP_REQUIRED'
+  );
+  assert.equal(profileRequests, 0);
+});
+
+test('Minecraft 미소유 계정은 캐시에서 제거해 자동 로그인 재시도를 막는다', async (context) => {
+  const root = await tempDirectory('fire-crew-auth-non-owner-');
+  context.after(() => fs.rm(root, { recursive: true, force: true }));
+  const cacheFile = path.join(root, 'cache.bin');
+  const profileFile = path.join(root, 'profile.json');
+  await fs.writeFile(cacheFile, 'cached-token');
+  await fs.writeFile(profileFile, '{}');
+  const account = { username: 'non-owner@example.com' };
+  const removedAccounts = [];
+  const tokenCache = {
+    getAllAccounts: async () => removedAccounts.length ? [] : [account],
+    removeAccount: async (removed) => removedAccounts.push(removed)
+  };
+  const service = new AuthService({
+    clientId: '13b1569c-6493-4f9f-9cc3-7a4def917a33',
+    cacheFile,
+    profileFile,
+    safeStorage: { isEncryptionAvailable: () => false },
+    createAuthenticator: () => ({
+      authenticateXboxLive: async () => ({ Token: 'xbl-token' }),
+      authorizeXboxLive: async () => ({
+        Token: 'minecraft-xsts-token',
+        DisplayClaims: { xui: [{ uhs: 'user-hash', xid: '2533274799999999' }] }
+      }),
+      loginMinecraftWithXBox: async () => ({ access_token: 'minecraft-token', expires_in: 3600 })
+    }),
+    createMojangClient: () => ({
+      checkGameOwnership: async () => ({ items: [] }),
+      getProfile: async () => ({ id: 'unused', name: 'unused' })
+    })
+  });
+  service.initialized = true;
+  service.pca = {
+    acquireTokenSilent: async () => ({ accessToken: 'microsoft-token', account }),
+    getTokenCache: () => tokenCache
+  };
+
+  await assert.rejects(
+    () => service.acquireMinecraftSession({ interactive: false }),
+    (error) => error.code === 'MINECRAFT_OWNERSHIP_REQUIRED'
+  );
+  assert.deepEqual(removedAccounts, [account]);
+  assert.equal((await service.getStatus()).microsoftSignedIn, false);
+  await assert.rejects(() => fs.stat(cacheFile), { code: 'ENOENT' });
+  await assert.rejects(() => fs.stat(profileFile), { code: 'ENOENT' });
+});
+
 test('Microsoft Minecraft 실행 인자에 MSA 유형과 clientId·XUID를 전달한다', () => {
   const clientId = '13b1569c-6493-4f9f-9cc3-7a4def917a33';
   const identity = createMicrosoftLaunchIdentity({
