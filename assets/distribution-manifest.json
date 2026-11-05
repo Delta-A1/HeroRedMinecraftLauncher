@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-08-25T11:59:08.704Z",
+    "generatedAt": "2026-11-05T15:38:42.255Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -324,29 +324,29 @@
       },
       {
         "id": "profile-2",
-        "name": "신들의 전쟁",
-        "description": "신들의 전쟁",
+        "name": "???",
+        "description": "Vanilla",
         "version": "profile-2-r1",
         "ready": true,
         "server": {
-          "name": "서버 2",
-          "address": "185.207.166.118:19003",
+          "name": "서버",
+          "address": "185.207.166.118",
           "host": "185.207.166.118",
           "port": 19003
         },
         "minecraft": {
-          "version": "26.1.2",
-          "loader": "forge",
-          "loaderVersion": "64.1.0",
-          "forgeVersion": "64.1.0",
-          "forgeVersionId": "26.1.2-forge-64.1.0",
-          "versionId": "26.1.2-forge-64.1.0",
-          "javaRuntimeTarget": "java-runtime-epsilon",
-          "javaMajorVersion": 25
+          "version": "1.21.1",
+          "loader": "neoforge",
+          "loaderVersion": "21.1.248",
+          "forgeVersion": "",
+          "forgeVersionId": "neoforge-21.1.248",
+          "versionId": "neoforge-21.1.248",
+          "javaRuntimeTarget": "java-runtime-delta",
+          "javaMajorVersion": 21
         },
         "pack": {
           "id": "profile-2-vanilla",
-          "name": "신들의 전쟁",
+          "name": "Vanilla",
           "version": "profile-2-r1",
           "fileId": 0,
           "koreanPackName": "",
@@ -355,14 +355,245 @@
         "archives": [],
         "files": [
           {
-            "path": "mods/voicechat-forge-2.6.22+26.1.2.jar",
-            "url": "https://cdn.modrinth.com/data/9eGKb6K1/versions/b7lNKIlY/voicechat-forge-2.6.22%2B26.1.2.jar",
-            "size": 4912847,
+            "path": "mods/connector-2.0.0-beta.17+1.21.1-full.jar",
+            "url": "https://edge.forgecdn.net/files/8654/089/connector-2.0.0-beta.17%2B1.21.1-full.jar",
+            "size": 4573244,
             "hash": {
-              "algorithm": "sha1",
-              "value": "d6c273ba387440c06176daa80dbf0262c4e07e82"
+              "algorithm": "sha256",
+              "value": "5a4ad10e57b8b1690832d9b77fc488fbe5e7cf41ac5a90d9f569bd78fbea25be"
             },
-            "source": "Simple Voice Chat · Simple Voice Chat 2.6.22+26.1.2 · Modrinth",
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/curios-neoforge-9.5.1+1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/6529/130/curios-neoforge-9.5.1%2B1.21.1.jar",
+            "size": 410690,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "a45df2125c26219974aba7507ffc9afe7b83acc941a386af3faacb1cc0056fde"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/CustomNPCs-Unofficial-NeoForge-1.21.1.20251230.jar",
+            "url": "https://edge.forgecdn.net/files/7411/561/CustomNPCs-Unofficial-NeoForge-1.21.1.20251230.jar",
+            "size": 10789250,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "6c28d87b215fc1191488194188ec8a39dd908ae7d2d887b7c9d7d463be0a162c"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/flashlight-5.1-neoforge-1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/7540/977/flashlight-5.1-neoforge-1.21.1.jar",
+            "size": 3660097,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "9088bb56b90e5cdc6bc59f4778dcabcba5ac9718efd4556c76f9132ee596ca1f"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/forgified-fabric-api-0.116.15+2.3.5+1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8726/480/forgified-fabric-api-0.116.15%2B2.3.5%2B1.21.1.jar",
+            "size": 5613421,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "56cb524bcbb2430113f586d4d58ba79bfd66f73684c019aacb528690c3d8d07d"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/framework-neoforge-1.21.1-0.13.11.jar",
+            "url": "https://edge.forgecdn.net/files/7530/361/framework-neoforge-1.21.1-0.13.11.jar",
+            "size": 387334,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "429ea90a162d7c25c1463ee60979e4d7b1ddb525d9384a3a2a2f45d70bda03f5"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/geckolib-neoforge-1.21.1-4.9.3.jar",
+            "url": "https://edge.forgecdn.net/files/8893/490/geckolib-neoforge-1.21.1-4.9.3.jar",
+            "size": 634531,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "20a1995e4074f387ff549e2c57ea79dd7d41ee83c6afb9dd6a6e840e592d1c47"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/iris-neoforge-1.8.14-beta.1+mc1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8242/804/iris-neoforge-1.8.14-beta.1%2Bmc1.21.1.jar",
+            "size": 2540723,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "60d5f8bf52f25e9986440f4a4270a6bd986d9cff994510e1108ac1547063b314"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/mcef_neoforge_2.2.0_MC_1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/7714/366/mcef_neoforge_2.2.0_MC_1.21.1.jar",
+            "size": 264045,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "564b339dd73f69f4f62b050627d184ed623d5d62ff33bf95e2d8c6322720c35c"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/plasmovoice-neoforge-1.21.1-2.1.17.jar",
+            "url": "https://edge.forgecdn.net/files/8890/194/plasmovoice-neoforge-1.21.1-2.1.17.jar",
+            "size": 12341959,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "3714890e127dc661031116c845e8d585bd3cd56360cd070b6be9073bd1e2e3de"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/player-animation-lib-forge-2.0.4+1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/7389/814/player-animation-lib-forge-2.0.4%2B1.21.1.jar",
+            "size": 203149,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "dbe5de45f5cd60c0e5e47af14e6d564534a98456e973cf670cb881f6938eee92"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/PlayerAnimationLibNeoforge-1.1.6+mc.1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8674/792/PlayerAnimationLibNeoforge-1.1.6%2Bmc.1.21.1.jar",
+            "size": 1156673,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "e41ee06000fc95444a482018ec24b3f1e79eb111ca6b8ca119e61ceabf9136c5"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/ScorchedGuns-1.5.jar",
+            "url": "https://edge.forgecdn.net/files/8299/074/ScorchedGuns-1.5.jar",
+            "size": 18972536,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "6a4237c518fa36a56d3bf2a269fad508e2f4053a51e9c43381709b09806c2001"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/sit-1.21.1-1.4.jar",
+            "url": "https://edge.forgecdn.net/files/6776/225/sit-1.21.1-1.4.jar",
+            "size": 14031,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "a726385d1c6781f93906dce38d125fe5f4da32b10ae5601bf855773939603c04"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/SkinShuffle-2.8.2+1.21.jar",
+            "url": "https://edge.forgecdn.net/files/6384/793/SkinShuffle-2.8.2%2B1.21.jar",
+            "size": 5039804,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "d8fed32546d1bbcc3e1f8cd28a8a9b9b16f48be3f4221e1d47c919181b3921c7"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/sodium-neoforge-0.8.13+mc1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8756/580/sodium-neoforge-0.8.13%2Bmc1.21.1.jar",
+            "size": 1292934,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "575d187b15328d7bddd8a9b1bee64333c22c14735f5780ec49eac0cd5503c08d"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/sound-physics-remastered-neoforge-1.21.1-1.5.1.jar",
+            "url": "https://edge.forgecdn.net/files/7032/247/sound-physics-remastered-neoforge-1.21.1-1.5.1.jar",
+            "size": 202454,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "65372ad64422a20f03ad6e39aabaa827c191abbe9be5c35631acc3a8105fe177"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/supersentaicraft-1.21.1-v2.8.1.jar",
+            "url": "https://edge.forgecdn.net/files/8790/944/supersentaicraft-1.21.1-v2.8.1.jar",
+            "size": 9871899,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "51ee26068a7c22085b65a5b88283dfe32617c2893c1416185eb266743ee1da2d"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/tctcore-2.3-neoforge-1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8623/154/tctcore-2.3-neoforge-1.21.1.jar",
+            "size": 8118709,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "deafacd323dee041d08ae6039d579e52ac79698eeb53c38b1ac53c0dd2a35d96"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/webdisplays-2.6.0-1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/8168/468/webdisplays-2.6.0-1.21.1.jar",
+            "size": 875939,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "dcd57a96b36201282d5c4f3ab83e5271d68f4ca9fddbf39e712996b636f3ed34"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/worldedit-mod-7.3.8.jar",
+            "url": "https://edge.forgecdn.net/files/5830/452/worldedit-mod-7.3.8.jar",
+            "size": 6222854,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "5e7752c97876d87411e3760bcc573cc431f43c453722e6959fa7fe54db1b01ca"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "shaderpacks/BSL_v10.1.1.zip",
+            "url": "https://edge.forgecdn.net/files/7588/844/BSL_v10.1.1.zip",
+            "size": 1125052,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "131ca6b56b100e60577ffdb0dd51bfab2ee6e334564eeee324e5422026891668"
+            },
+            "source": "",
             "projectUrl": ""
           }
         ],
@@ -370,5 +601,5 @@
       }
     ]
   },
-  "signature": "cvtOWzYG6HeSfSZF1pc5MN9O/8LA6loEJUE4keBM/UunjHkUdjXzzEexdZScrbSK9ik45fc328JkOCXRbljCAQ=="
+  "signature": "sENdzzwa6pX2m1wXtc+m5y6Usf0gigTlF4vZcA2znCLwoYxq+b70UgB+OxYxdwt1LRz10M0cWwWlsvd7F1qgAw=="
 }
