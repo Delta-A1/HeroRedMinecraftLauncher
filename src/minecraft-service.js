@@ -8,6 +8,7 @@ const {
   getVersionList,
   installFabric,
   installForgeTask,
+  installNeoForgedTask,
   installLibrariesTask,
   installVersionTask
 } = require('@xmcl/installer');
@@ -20,6 +21,7 @@ const {
 } = require('./minecraft-download-policy');
 const { fetchMojangJavaRuntimeManifest } = require('./mojang-runtime-manifest');
 const { javaMajorForRuntimeTarget, javaMajorFromVersionName } = require('./config');
+const { neoForgeVersionId } = require('./neoforge');
 
 function createMicrosoftLaunchIdentity(session) {
   const clientId = String(session?.clientId || '').trim();
@@ -48,7 +50,7 @@ function baseStateMatchesProduct(state, product) {
   const expectedVersionId = loader === 'vanilla'
     ? product.minecraft.version
     : String(product.minecraft.versionId || product.minecraft.forgeVersionId || (
-      loader === 'fabric'
+      loader === 'neoforge' ? neoForgeVersionId(product.minecraft.version, loaderVersion) : loader === 'fabric'
         ? `${product.minecraft.version}-fabric${loaderVersion}`
         : `${product.minecraft.version}-${loader}-${loaderVersion}`
     ));
@@ -331,6 +333,12 @@ class MinecraftService {
   }
 
   async ensureForge(javaPath, options = {}) {
+    const loader = this.product.minecraft.loader === 'neoforge' ? 'neoforge' : 'forge';
+    const isNeoForge = loader === 'neoforge';
+    const label = isNeoForge ? 'NeoForge' : 'Forge';
+    const loaderVersion = String(this.product.minecraft.loaderVersion || this.product.minecraft.forgeVersion || '');
+    if (!loaderVersion) throw new Error(`${label} 버전이 설정되지 않았습니다.`);
+    const mavenHost = [isNeoForge ? 'https://maven.neoforged.net/releases' : 'https://maven.minecraftforge.net'];
     const saved = await readJson(this.baseStateFile, {});
     const savedMatches = baseStateMatchesProduct(saved, this.product);
     let forgeVersionId = savedMatches
@@ -338,18 +346,24 @@ class MinecraftService {
       : this.product.minecraft.forgeVersionId;
     const versionJson = this.minecraft.getVersionJson(forgeVersionId);
     if (options.repair || !savedMatches || !await pathExists(versionJson)) {
-      this.onProgress?.('Forge 준비', 35, `${this.product.minecraft.forgeVersion} 설치 중`);
+      this.onProgress?.(`${label} 준비`, 35, `${loaderVersion} 설치 중`);
       forgeVersionId = await this.runTaskWithRetries(
-        () => installForgeTask({
+        () => isNeoForge ? installNeoForgedTask(
+          this.product.minecraft.version === '1.20.1' ? 'forge' : 'neoforge',
+          this.product.minecraft.version === '1.20.1' ? `1.20.1-${loaderVersion}` : loaderVersion,
+          this.minecraft,
+          this.getDownloadOptions({ java: javaPath, side: 'client', mavenHost,
+            versionId: this.product.minecraft.versionId || neoForgeVersionId(this.product.minecraft.version, loaderVersion) })
+        ) : installForgeTask({
           mcversion: this.product.minecraft.version,
           version: this.product.minecraft.forgeVersion
         }, this.minecraft, this.getDownloadOptions({
           java: javaPath,
           side: 'client',
-          mavenHost: ['https://maven.minecraftforge.net']
+          mavenHost
         })),
         [35, 42],
-        'Forge 설치'
+        `${label} 설치`
       );
     }
     const resolved = await Version.parse(this.minecraft, forgeVersionId);
@@ -362,17 +376,17 @@ class MinecraftService {
       await this.runTaskWithRetries(
         () => installLibrariesTask(resolved, this.getDownloadOptions({
           side: 'client',
-          mavenHost: ['https://maven.minecraftforge.net']
+          mavenHost
         })),
         [42, 44],
-        'Forge 라이브러리 확인'
+        `${label} 라이브러리 확인`
       );
     }
     await writeJsonAtomic(this.baseStateFile, {
       minecraftVersion: this.product.minecraft.version,
-      loader: 'forge',
-      loaderVersion: this.product.minecraft.forgeVersion,
-      forgeVersion: this.product.minecraft.forgeVersion,
+      loader,
+      loaderVersion,
+      forgeVersion: isNeoForge ? '' : loaderVersion,
       forgeVersionId,
       launchVersionId: forgeVersionId,
       javaRuntimeTarget: this.product.minecraft.javaRuntimeTarget,
@@ -461,7 +475,7 @@ class MinecraftService {
         dependenciesVerified: true,
         preparedAt: new Date().toISOString()
       });
-    } else if (loader === 'forge') {
+    } else if (loader === 'forge' || loader === 'neoforge') {
       launchVersionId = await this.ensureForge(javaPath, options);
     } else if (loader === 'fabric') {
       launchVersionId = await this.ensureFabric(options);
@@ -502,6 +516,7 @@ class MinecraftService {
       loaderReady,
       forgeReady: loader === 'forge' ? loaderReady : false,
       fabricReady: loader === 'fabric' ? loaderReady : false,
+      neoforgeReady: loader === 'neoforge' ? loaderReady : false,
       forgeVersionId: launchVersionId,
       launchVersionId
     };

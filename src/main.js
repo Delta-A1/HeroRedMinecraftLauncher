@@ -891,7 +891,7 @@ async function repair() {
       repair: true,
       allowIncompleteDistribution: qaMode
     });
-    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : activeProduct.minecraft.loader === 'neoforge' ? 'NeoForge' : 'Forge';
     progress(
       qaMode ? 'QA 재검사 완료' : '복구 완료',
       100,
@@ -1001,7 +1001,7 @@ async function initializeMainApplication() {
   ipcMain.handle('launcher:cleanup-unused-profiles', cleanupUnusedProfiles);
   ipcMain.handle('launcher:repair', async () => {
     const qaMode = Boolean(runtimeConfig.qaBypassMicrosoftLogin);
-    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
+    const loaderName = activeProduct.minecraft.loader === 'vanilla' ? 'Vanilla' : activeProduct.minecraft.loader === 'fabric' ? 'Fabric' : activeProduct.minecraft.loader === 'neoforge' ? 'NeoForge' : 'Forge';
     const result = await dialog.showMessageBox(mainWindow, {
       type: 'warning',
       title: qaMode ? 'QA 클라이언트 재검사' : '클라이언트 복구',

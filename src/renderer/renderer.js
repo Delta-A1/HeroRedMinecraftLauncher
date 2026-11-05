@@ -322,7 +322,7 @@ function renderAccount(nextState) {
 
 function render(nextState) {
   state = nextState;
-  const loaderName = state.product.minecraft.loader === 'vanilla' ? 'Vanilla' : state.product.minecraft.loader === 'fabric' ? 'Fabric' : 'Forge';
+  const loaderName = state.product.minecraft.loader === 'vanilla' ? 'Vanilla' : state.product.minecraft.loader === 'fabric' ? 'Fabric' : state.product.minecraft.loader === 'neoforge' ? 'NeoForge' : 'Forge';
   elements.memory.value = String(state.memoryMb || 8192);
   elements.launcherBuildLabel.textContent = `Fire Crew Launcher · ${state.product.version} · MC ${state.product.minecraft.version}`;
   renderProfile(state);

@@ -1,4 +1,5 @@
 'use strict';
+const { neoForgeVersionId } = require('./neoforge');
 
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -156,7 +157,9 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
         minecraft.forgeVersionId = minecraft.versionId;
       } else {
         minecraft.forgeVersion = '';
-        minecraft.versionId = explicitVersionId || `${minecraft.version}-${minecraft.loader}${minecraft.loaderVersion}`;
+        minecraft.versionId = explicitVersionId || (minecraft.loader === 'neoforge'
+          ? neoForgeVersionId(minecraft.version, minecraft.loaderVersion)
+          : `${minecraft.version}-${minecraft.loader}${minecraft.loaderVersion}`);
         minecraft.forgeVersionId = minecraft.versionId;
       }
     }
