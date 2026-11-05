@@ -7,6 +7,7 @@ const { normalizeWindowsPackageNames } = require('./normalize-windows-package-na
 const WINDOWS_BUILD_NAME = '불꽃단 런처-win32-x64';
 
 const BUILD_IGNORE_PATTERNS = Object.freeze([
+  /^\/\.test-tmp(?:\/|$)/,
   /^\/release(?:\/|$)/,
   /^\/dist(?:[-/]|$)/,
   /^\/internal-build(?:\/|$)/,
