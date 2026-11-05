@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-05T16:19:56.601Z",
+    "generatedAt": "2026-11-05T16:22:29.486Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -330,9 +330,9 @@
         "ready": true,
         "server": {
           "name": "서버",
-          "address": "185.207.166.118",
+          "address": "185.207.166.118:22603",
           "host": "185.207.166.118",
-          "port": 19003
+          "port": 22603
         },
         "minecraft": {
           "version": "1.21.1",
@@ -601,5 +601,5 @@
       }
     ]
   },
-  "signature": "zSw0PJulucgbKB2ZVTJitHSOdBzMn37uXRkTOC1DnXdFLQJeLRLjNpQ8rBKkn4Z3v4Yz4IRXW+0ydEpSVE65CQ=="
+  "signature": "bnEF7jv1rvM5xCTHfcCslSN1xVoqkPhtGLelGj7CPvvs1IqL1Kfccw9+61yOoS9Rr/dkWAmMyawm8kwEyxdjDA=="
 }
