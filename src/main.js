@@ -9,7 +9,8 @@ const {
   PRODUCT,
   getRuntimeConfigurationIssues,
   loadRuntimeConfig,
-  productForProfile
+  productForProfile,
+  updateProfileServers
 } = require('./config');
 const {
   ensureDirectory,
@@ -300,6 +301,13 @@ function createProfileServices() {
     publicKey: activeProfile.distributionPublicKey,
     allowUnsignedLocalManifest: activeProfile.allowUnsignedLocalManifest,
     product: activeProduct,
+    onManifestVerified: (payload) => {
+      if (gameRunning) return;
+      launchProfiles = updateProfileServers(launchProfiles, payload);
+      activeProfile = launchProfiles.find((profile) => profile.id === activeProfile.id);
+      // MinecraftService holds this product too, so launches use the refreshed address.
+      Object.assign(activeProduct.server, activeProfile.server);
+    },
     onProgress: progress,
     onLog: log
   });

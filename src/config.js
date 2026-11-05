@@ -134,7 +134,7 @@ function createLaunchProfiles(config = {}, product = PRODUCT) {
     usedIds.add(id);
     const address = String(entry.server?.address || product.server.address).trim();
     // address is canonical; legacy host/port fields may be stale.
-    const parsedServer = splitServerAddress(address, product.server.port);
+    const parsedServer = splitServerAddress(address);
     const minecraft = { ...product.minecraft, ...(entry.minecraft || {}) };
     const explicitVersionId = String(entry.minecraft?.versionId || entry.minecraft?.forgeVersionId || '');
     minecraft.loader = String(minecraft.loader || (minecraft.forgeVersion ? 'forge' : 'vanilla')).toLowerCase();
@@ -201,6 +201,21 @@ function productForProfile(profile, product = PRODUCT) {
     minecraft: { ...profile.minecraft },
     pack: { ...profile.pack }
   };
+}
+
+// Refresh connection settings without changing an installed profile's identity or runtime.
+function updateProfileServers(profiles, payload) {
+  if (Number(payload?.schemaVersion) !== 2 || !Array.isArray(payload.profiles)) return profiles;
+  return profiles.map((profile) => {
+    const entry = payload.profiles.find((candidate) =>
+      candidate.id === profile.id && candidate.pack?.id === profile.pack.id
+    );
+    if (!String(entry?.server?.address || '').trim()) return profile;
+    const [updated] = createLaunchProfiles({ profiles: [{
+      ...profile, server: { ...profile.server, ...entry.server }
+    }] });
+    return { ...profile, server: updated.server };
+  });
 }
 
 async function readJson(file, fallback = {}) {
@@ -273,5 +288,6 @@ module.exports = {
   normalizeJavaMajor,
   productForProfile,
   readJson,
-  requiredJavaMajorForMinecraft
+  requiredJavaMajorForMinecraft,
+  updateProfileServers
 };

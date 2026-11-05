@@ -153,6 +153,7 @@ class PatchService {
     this.product = options.product;
     this.onProgress = options.onProgress;
     this.onLog = options.onLog;
+    this.onManifestVerified = options.onManifestVerified;
   }
 
   async loadManifest() {
@@ -202,7 +203,9 @@ class PatchService {
       this.publicKey,
       !remote && this.allowUnsignedLocalManifest
     );
-    return validateManifest(payload, this.product);
+    const manifest = validateManifest(payload, this.product);
+    this.onManifestVerified?.(payload);
+    return manifest;
   }
 
   async getStatus(options = {}) {
