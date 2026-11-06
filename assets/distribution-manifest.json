@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-05T16:22:29.486Z",
+    "generatedAt": "2026-11-06T15:21:28.512Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -337,10 +337,10 @@
         "minecraft": {
           "version": "1.21.1",
           "loader": "neoforge",
-          "loaderVersion": "21.1.248",
+          "loaderVersion": "21.1.265",
           "forgeVersion": "",
-          "forgeVersionId": "neoforge-21.1.248",
-          "versionId": "neoforge-21.1.248",
+          "forgeVersionId": "neoforge-21.1.265",
+          "versionId": "neoforge-21.1.265",
           "javaRuntimeTarget": "java-runtime-delta",
           "javaMajorVersion": 21
         },
@@ -383,6 +383,17 @@
             "hash": {
               "algorithm": "sha256",
               "value": "6c28d87b215fc1191488194188ec8a39dd908ae7d2d887b7c9d7d463be0a162c"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
+            "path": "mods/dreamdisplays-fabric-26.3-1.10.8.jar",
+            "url": "https://edge.forgecdn.net/files/9379/239/dreamdisplays-fabric-26.3-1.10.8.jar",
+            "size": 26634459,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "737aeb89468f4e9dd50830afbf3f5ce349fd2eca9474a1344cebf745de487322"
             },
             "source": "",
             "projectUrl": ""
@@ -438,17 +449,6 @@
             "hash": {
               "algorithm": "sha256",
               "value": "60d5f8bf52f25e9986440f4a4270a6bd986d9cff994510e1108ac1547063b314"
-            },
-            "source": "",
-            "projectUrl": ""
-          },
-          {
-            "path": "mods/mcef_neoforge_2.2.0_MC_1.21.1.jar",
-            "url": "https://edge.forgecdn.net/files/7714/366/mcef_neoforge_2.2.0_MC_1.21.1.jar",
-            "size": 264045,
-            "hash": {
-              "algorithm": "sha256",
-              "value": "564b339dd73f69f4f62b050627d184ed623d5d62ff33bf95e2d8c6322720c35c"
             },
             "source": "",
             "projectUrl": ""
@@ -564,17 +564,6 @@
             "projectUrl": ""
           },
           {
-            "path": "mods/webdisplays-2.6.0-1.21.1.jar",
-            "url": "https://edge.forgecdn.net/files/8168/468/webdisplays-2.6.0-1.21.1.jar",
-            "size": 875939,
-            "hash": {
-              "algorithm": "sha256",
-              "value": "dcd57a96b36201282d5c4f3ab83e5271d68f4ca9fddbf39e712996b636f3ed34"
-            },
-            "source": "",
-            "projectUrl": ""
-          },
-          {
             "path": "mods/worldedit-mod-7.3.8.jar",
             "url": "https://edge.forgecdn.net/files/5830/452/worldedit-mod-7.3.8.jar",
             "size": 6222854,
@@ -601,5 +590,5 @@
       }
     ]
   },
-  "signature": "bnEF7jv1rvM5xCTHfcCslSN1xVoqkPhtGLelGj7CPvvs1IqL1Kfccw9+61yOoS9Rr/dkWAmMyawm8kwEyxdjDA=="
+  "signature": "eV6p0U8UhlBsDbXgQEO+vryglFnlmDW1uWFvhpsT0y3Ahcc/VhV7nSreaGkyKlL59XEgv0+US8vtb5T3rZ0cCA=="
 }
