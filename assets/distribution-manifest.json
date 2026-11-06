@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-06T15:26:44.011Z",
+    "generatedAt": "2026-11-06T15:44:48.506Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -388,12 +388,12 @@
             "projectUrl": ""
           },
           {
-            "path": "mods/dreamdisplays-fabric-26.3-1.10.8.jar",
-            "url": "https://edge.forgecdn.net/files/9379/239/dreamdisplays-fabric-26.3-1.10.8.jar",
-            "size": 26634459,
+            "path": "mods/dreamdisplays-neoforge-1.21.1-1.10.8.jar",
+            "url": "https://edge.forgecdn.net/files/9379/206/dreamdisplays-neoforge-1.21.1-1.10.8.jar",
+            "size": 26552196,
             "hash": {
               "algorithm": "sha256",
-              "value": "737aeb89468f4e9dd50830afbf3f5ce349fd2eca9474a1344cebf745de487322"
+              "value": "41d64a562d0f17360267c72ac62400fd2f7fc74f70fd95511e0a32e05fc5d4ca"
             },
             "source": "",
             "projectUrl": ""
@@ -588,10 +588,11 @@
         ],
         "remove": [
           "mods/mcef_neoforge_2.2.0_MC_1.21.1.jar",
-          "mods/webdisplays-2.6.0-1.21.1.jar"
+          "mods/webdisplays-2.6.0-1.21.1.jar",
+          "mods/dreamdisplays-fabric-26.3-1.10.8.jar"
         ]
       }
     ]
   },
-  "signature": "lJQK6CBfqeK8xUYQyMSHJsxpyhrWhEWBPOwAFU+U0afsCBjgWC5AYaO0L3+zZLFKNOSNUSEyq3BhNIvWm4G6DQ=="
+  "signature": "BDS6Hhkx0FgXog97tm+zy4AO+3WbcRl0riPzGT3vVIY6SftqQWRlUc42IcTBJdit4dIm1X29PXDduPUNbWtVAQ=="
 }
