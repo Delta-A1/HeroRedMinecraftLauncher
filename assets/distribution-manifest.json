@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-06T15:21:28.512Z",
+    "generatedAt": "2026-11-06T15:22:42.910Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -323,7 +323,7 @@
         ]
       },
       {
-        "id": "profile-2",
+        "id": "profile-2b",
         "name": "???",
         "description": "Vanilla",
         "version": "profile-2-r1",
@@ -590,5 +590,5 @@
       }
     ]
   },
-  "signature": "eV6p0U8UhlBsDbXgQEO+vryglFnlmDW1uWFvhpsT0y3Ahcc/VhV7nSreaGkyKlL59XEgv0+US8vtb5T3rZ0cCA=="
+  "signature": "yoyLoem6nc6rfy5mIXlf18tJtzhlKmPXBpa6nGWjJhxw0gcqt2ajGbjxBbN0OVrz6FldAhkwUGDmQxImF6rhAQ=="
 }
