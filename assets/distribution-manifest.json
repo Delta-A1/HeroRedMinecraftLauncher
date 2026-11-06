@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-06T16:14:10.619Z",
+    "generatedAt": "2026-11-06T16:17:23.455Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -531,17 +531,6 @@
             "projectUrl": ""
           },
           {
-            "path": "mods/sound-physics-remastered-neoforge-1.21.1-1.5.1.jar",
-            "url": "https://edge.forgecdn.net/files/7032/247/sound-physics-remastered-neoforge-1.21.1-1.5.1.jar",
-            "size": 202454,
-            "hash": {
-              "algorithm": "sha256",
-              "value": "65372ad64422a20f03ad6e39aabaa827c191abbe9be5c35631acc3a8105fe177"
-            },
-            "source": "",
-            "projectUrl": ""
-          },
-          {
             "path": "mods/sound-physics-remastered-neoforge-1.21.1-1.5.2.jar",
             "url": "https://edge.forgecdn.net/files/9279/974/sound-physics-remastered-neoforge-1.21.1-1.5.2.jar",
             "size": 204230,
@@ -607,5 +596,5 @@
       }
     ]
   },
-  "signature": "F+oZPZsnEhEpv9HaHI0WNtRdzs2U3+8OCKhkslxjoCD3xokrhYF8xNZtnFeSwAh5C7WeDHnFC7kXIRqDEHbmAQ=="
+  "signature": "vsc+lT9RsCgI+8hBPluy0QIRfcZfU5i7c2gwI/jan54HGPqHLgxNCFecn5thMxd59YqpQR9iUdkMVcpyZHooBA=="
 }
