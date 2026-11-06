@@ -3,7 +3,7 @@
     "schemaVersion": 2,
     "ready": true,
     "version": "fire-crew-26.2-city-building-r2",
-    "generatedAt": "2026-11-06T15:44:48.506Z",
+    "generatedAt": "2026-11-06T16:14:10.619Z",
     "profiles": [
       {
         "id": "fire-crew-main",
@@ -410,12 +410,12 @@
             "projectUrl": ""
           },
           {
-            "path": "mods/forgified-fabric-api-0.116.15+2.3.5+1.21.1.jar",
-            "url": "https://edge.forgecdn.net/files/8726/480/forgified-fabric-api-0.116.15%2B2.3.5%2B1.21.1.jar",
-            "size": 5613421,
+            "path": "mods/forgified-fabric-api-0.116.15+2.3.6+1.21.1.jar",
+            "url": "https://edge.forgecdn.net/files/9195/559/forgified-fabric-api-0.116.15%2B2.3.6%2B1.21.1.jar",
+            "size": 5613208,
             "hash": {
               "algorithm": "sha256",
-              "value": "56cb524bcbb2430113f586d4d58ba79bfd66f73684c019aacb528690c3d8d07d"
+              "value": "8504d7ceedb7b537ab4b028c17a673e6d428298cc7fc6c330ba843b128361a8c"
             },
             "source": "",
             "projectUrl": ""
@@ -542,6 +542,17 @@
             "projectUrl": ""
           },
           {
+            "path": "mods/sound-physics-remastered-neoforge-1.21.1-1.5.2.jar",
+            "url": "https://edge.forgecdn.net/files/9279/974/sound-physics-remastered-neoforge-1.21.1-1.5.2.jar",
+            "size": 204230,
+            "hash": {
+              "algorithm": "sha256",
+              "value": "108cac1fe49d0dc210183d69787db5a359cdc03c5b580eb8ab0208be7f072982"
+            },
+            "source": "",
+            "projectUrl": ""
+          },
+          {
             "path": "mods/supersentaicraft-1.21.1-v2.8.1.jar",
             "url": "https://edge.forgecdn.net/files/8790/944/supersentaicraft-1.21.1-v2.8.1.jar",
             "size": 9871899,
@@ -589,10 +600,12 @@
         "remove": [
           "mods/mcef_neoforge_2.2.0_MC_1.21.1.jar",
           "mods/webdisplays-2.6.0-1.21.1.jar",
-          "mods/dreamdisplays-fabric-26.3-1.10.8.jar"
+          "mods/dreamdisplays-fabric-26.3-1.10.8.jar",
+          "mods/sound-physics-remastered-neoforge-1.21.1-1.5.1.jar",
+          "mods/forgified-fabric-api-0.116.15+2.3.5+1.21.1"
         ]
       }
     ]
   },
-  "signature": "BDS6Hhkx0FgXog97tm+zy4AO+3WbcRl0riPzGT3vVIY6SftqQWRlUc42IcTBJdit4dIm1X29PXDduPUNbWtVAQ=="
+  "signature": "F+oZPZsnEhEpv9HaHI0WNtRdzs2U3+8OCKhkslxjoCD3xokrhYF8xNZtnFeSwAh5C7WeDHnFC7kXIRqDEHbmAQ=="
 }
